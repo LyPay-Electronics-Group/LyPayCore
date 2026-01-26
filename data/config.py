@@ -1,0 +1,33 @@
+﻿from os import getcwd as cwd
+
+
+class PATHS:
+    DATA = cwd() + '/data/'
+
+    QR = DATA + 'QR/'
+
+    IMAGES = DATA + 'images/'
+    LISTS = DATA + 'lists/'
+    ccc_lists = LISTS + 'ccc/'
+    EMAIL = DATA + 'email/'
+
+    STORES_KEYBOARDS = DATA + 'stores keyboards/'
+    STORES_LOGOS = DATA + 'stores logos/'
+    OLD_LOGOS = DATA + 'changed stores logos/'
+    STORES_CHEQUES = DATA + 'cheques/'
+
+    LAUNCH_SETTINGS = DATA + 'settings.json'
+
+    all = (DATA, IMAGES, LAUNCH_SETTINGS, QR, STORES_KEYBOARDS, STORES_LOGOS, STORES_CHEQUES, OLD_LOGOS,
+           LISTS, ccc_lists, EMAIL)
+
+
+VERSION = "test-1"
+NAME = ""
+BUILD = 1
+
+NEW_LINE_ANCHOR = "[([*br*])]"
+OPEN_CURLY_BRACKET_ANCHOR = "[([*ocb*])]"
+CLOSE_CURLY_BRACKET_ANCHOR = "[([*ccb*])]"
+QUOTATION_ANCHOR = "[([*q*])]"
+SPACE_ANCHOR = "[([*s*])]"
