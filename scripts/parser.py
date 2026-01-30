@@ -14,14 +14,16 @@ def get_full_name(obj: Exception):
     return module + '.' + obj.__class__.__name__
 
 
-def form_error(error: Exception) -> JSONResponse:
+def form_error(error: Exception, message: str | None = None, status_code: int = 500) -> JSONResponse:
     """
     Формирует респонс с ошибкой 5xx
 
     :param error: объект ошибки
+    :param message: текст для отображения
+    :param status_code: http код ошибки
     :return: JSONResponse
     """
-    return JSONResponse({'error': get_full_name(error), "message": error.__str__()}, status_code=500)
+    return JSONResponse({'error': get_full_name(error), "message": error.__str__() if message is None else message}, status_code=status_code)
 
 
 def form_error_bad_parsing() -> JSONResponse:

@@ -7,8 +7,6 @@ class PATHS:
     QR = DATA + 'QR/'
 
     IMAGES = DATA + 'images/'
-    LISTS = DATA + 'lists/'
-    ccc_lists = LISTS + 'ccc/'
     EMAIL = DATA + 'email/'
 
     STORES_KEYBOARDS = DATA + 'stores keyboards/'
@@ -18,13 +16,12 @@ class PATHS:
 
     LAUNCH_SETTINGS = DATA + 'settings.json'
 
-    all = (DATA, IMAGES, LAUNCH_SETTINGS, QR, STORES_KEYBOARDS, STORES_LOGOS, STORES_CHEQUES, OLD_LOGOS,
-           LISTS, ccc_lists, EMAIL)
+    all = (DATA, IMAGES, LAUNCH_SETTINGS, QR, STORES_KEYBOARDS, STORES_LOGOS, STORES_CHEQUES, OLD_LOGOS, EMAIL)
 
 
 VERSION = "test-1"
 NAME = ""
-BUILD = 2
+BUILD = 3
 
 NEW_LINE_ANCHOR = "[([*br*])]"
 OPEN_CURLY_BRACKET_ANCHOR = "[([*ocb*])]"

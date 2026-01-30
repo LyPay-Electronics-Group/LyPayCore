@@ -1,5 +1,5 @@
 import sqlite3 as sq
-import scripts.lpsql.errors
+import scripts.lpsql.exceptions
 
 from scripts.unix import unix
 
@@ -25,7 +25,7 @@ class DataBase:
             with open(self.path) as _:
                 pass
         except FileNotFoundError:
-            raise errors.BaseNotFound
+            raise exceptions.BaseNotFound
 
     def search(self, table: str, column: str, mean: str | int, quantity: bool = False) -> None | dict[str, ...] | list[dict[str, ...]]:
         """
@@ -52,7 +52,7 @@ class DataBase:
                     res = cur.fetchone()
                     return dict(res) if res is not None else None
             else:
-                raise errors.TableNotFound
+                raise exceptions.TableNotFound
 
 
     def insert(self, table: str, values: list[...]):
@@ -69,7 +69,7 @@ class DataBase:
             if table in self.tables:
                 cur.execute("insert into " + table + " VALUES (%s)" % ','.join('?' * len(values)), values)
             else:
-                raise errors.TableNotFound
+                raise exceptions.TableNotFound
 
 
     def delete(self, table: str, userid: int, storeid: str):
@@ -90,9 +90,9 @@ class DataBase:
                 if res is not None:
                     cur.execute("delete from " + table + " where userid = :x and storeid = :y", {'x': userid, 'y': storeid})
                 else:
-                    raise errors.EntryNotFound
+                    raise exceptions.EntryNotFound
             else:
-                raise errors.TableNotFound
+                raise exceptions.TableNotFound
 
 
     def delete_user(self, userid: int):
@@ -110,7 +110,7 @@ class DataBase:
             if res is not None:
                 cur.execute("delete from users where id = :x", {'x': userid})
             else:
-                raise errors.IDNotFound
+                raise exceptions.IDNotFound
 
 
     def balance_view(self, id: int | str) -> int:
@@ -134,7 +134,7 @@ class DataBase:
         if res is not None:
             return res['balance']
         else:
-            raise errors.IDNotFound
+            raise exceptions.IDNotFound
 
 
     def deposit(self, id: int | str, value: int, agent_id: int | str | None = None):
@@ -158,7 +158,7 @@ class DataBase:
                     if agent_id is not None:
                         cur.execute("insert into history values (:d, :x, :y, :z)",{'x': 'u' + str(id), 'y': value, 'd': 'd' + str(agent_id), 'z': unix()})
                 else:
-                    raise errors.IDNotFound
+                    raise exceptions.IDNotFound
             else:
                 cur.execute("select * from stores where id = :y", {'y': id})
                 res = cur.fetchone()
@@ -167,7 +167,7 @@ class DataBase:
                     if agent_id is not None:
                         cur.execute("insert into history values (:d, :x, :y, :z)",{'x': 's' + str(id), 'y': value, 'd': 'd' + str(agent_id), 'z': unix()})
                 else:
-                    raise errors.IDNotFound
+                    raise exceptions.IDNotFound
 
 
     def transfer(self, id_out: int | str, id_in: int | str, value: int):
@@ -191,14 +191,16 @@ class DataBase:
                 else:
                     cur.execute("select balance from stores where id = :y", {'y': id_out})
                     res = cur.fetchone()
-                if res['balance'] >= value:
+                if res is None:
+                    raise exceptions.IDNotFound
+                elif res['balance'] >= value:
                     self.deposit(id_out, 0 - value)
                     self.deposit(id_in, value)
                     cur.execute("insert into history values (:d, :x, :y, :z)",{'x': 'u' + str(id_in) if type(id_in) is int else 's' + str(id_in) , 'y': value, 'd': 'u' + str(id_out) if type(id_out) is int else 's' + str(id_out), 'z': unix()})
                 else:
-                    raise errors.NotEnoughBalance
+                    raise exceptions.NotEnoughBalance
             else:
-                raise errors.SubzeroInput
+                raise exceptions.SubzeroInput
 
 
     def searchall(self, table: str, column: str) -> list[...]:
@@ -219,7 +221,7 @@ class DataBase:
                 res = cur.fetchall()
                 return list(map(lambda d: d[column], res))
             else:
-                raise errors.TableNotFound
+                raise exceptions.TableNotFound
 
 
     def get_table(self, table: str) -> list[dict[str, ...]]:
@@ -239,7 +241,7 @@ class DataBase:
                 res = cur.fetchall()
                 return list(map(dict, res))
             else:
-                raise errors.TableNotFound
+                raise exceptions.TableNotFound
 
 
     def manual(self, comm: str):
@@ -277,6 +279,6 @@ class DataBase:
                 if res is not None:
                     cur.execute("update " + table + " set " + update_column + " = :x where " + check_column + " = :y", {'x': update_mean, 'y': check_mean})
                 else:
-                    raise errors.EntryNotFound
+                    raise exceptions.EntryNotFound
             else:
-                raise errors.TableNotFound
+                raise exceptions.TableNotFound
