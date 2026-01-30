@@ -24,7 +24,7 @@ class PATHS:
 
 VERSION = "test-1"
 NAME = ""
-BUILD = 1
+BUILD = 2
 
 NEW_LINE_ANCHOR = "[([*br*])]"
 OPEN_CURLY_BRACKET_ANCHOR = "[([*ocb*])]"

@@ -12,12 +12,10 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/info")
-async def info(ID: str | None = None):
+async def info(ID: str = None):
     if ID is None:
-        return JSONResponse(
-            {"error": "ValueError"},
-            status_code=400
-        )
+        return parser.form_error_bad_parsing()
+
     try:
         result = db.search("users", "ID", int(ID))
         if result is not None:
@@ -30,19 +28,14 @@ async def info(ID: str | None = None):
             status_code=404
         )
     except Exception as e:
-        return JSONResponse(
-            {"error": parser.get_full_name(e)},
-            status_code=500
-        )
+        return parser.form_error(e)
 
 
 @router.get("/balance")
-async def balance(ID: str | None = None):
+async def balance(ID: str = None):
     if ID is None:
-        return JSONResponse(
-            {"error": "ValueError"},
-            status_code=400
-        )
+        return parser.form_error_bad_parsing()
+
     try:
         result = db.search("users", "ID", int(ID))
         if result is not None:
@@ -55,19 +48,13 @@ async def balance(ID: str | None = None):
             status_code=404
         )
     except Exception as e:
-        return JSONResponse(
-            {"error": parser.get_full_name(e)},
-            status_code=500
-        )
+        return parser.form_error(e)
 
 
 @router.get("/qr/check")
-async def qr_check(ID: str | None = None, unix: str | None = None):
+async def qr_check(ID: str = None, unix: str = None):
     if ID is None or unix is None:
-        return JSONResponse(
-            {"error": "ValueError"},
-            status_code=400
-        )
+        return parser.form_error_bad_parsing()
 
     try:
         path = cfg.PATHS.QR + f"{ID}.png"
@@ -77,19 +64,14 @@ async def qr_check(ID: str | None = None, unix: str | None = None):
             status_code=200
         )
     except Exception as e:
-        return JSONResponse(
-            {"error": parser.get_full_name(e)},
-            status_code=500
-        )
+        return parser.form_error(e)
 
 
 @router.get("/qr/get")
-async def qr_get(ID: str | None = None):
+async def qr_get(ID: str = None):
     if ID is None:
-        return JSONResponse(
-            {"error": "ValueError"},
-            status_code=400
-        )
+        return parser.form_error_bad_parsing()
+
     try:
         path = cfg.PATHS.QR + f"{ID}.png"
         if exists(path):
@@ -103,7 +85,4 @@ async def qr_get(ID: str | None = None):
             status_code=201
         )
     except Exception as e:
-        return JSONResponse(
-            {"error": parser.get_full_name(e)},
-            status_code=500
-        )
+        return parser.form_error(e)

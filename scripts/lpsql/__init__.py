@@ -7,10 +7,8 @@ from scripts.unix import unix
 
 
 class Tables:
-    MAIN = ['users', 'stores', 'qr', 'shopkeepers', 'logotypes', 'history', 'changing', 'corporation', 'auction',
-            'arttest_test1', 'arttest_test4', 'users_reformated']
-
-    SUBLISTS = ['ads', 'ad_approving', 'arttest', 'auction_lot_control', 'ccc', 'hi_frog', 'promo', 'store_form_link']
+    MAIN = ['users', 'stores', 'shopkeepers', 'logotypes', 'history', 'changing', 'corporation', 'auction',
+            'arttest_test1', 'arttest_test4', 'promo']
 
     FIREWALL = ['main', 'stores', 'admins']
 

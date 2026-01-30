@@ -10,11 +10,14 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 
 
 @router.get("/{route}")
-async def info(route: str, ID: str | None = None):
-    if ID is None or route.lower() not in ('main', 'stores', 'admins'):
+async def info(route: str, ID: str = None):
+    if ID is None:
+        return parser.form_error_bad_parsing()
+
+    elif route.lower() not in ('main', 'stores', 'admins'):
         return JSONResponse(
-            {"error": "ValueError"},
-            status_code=400
+            {"error": "NameError", "message": "invalid route"},
+            status_code=404
         )
     try:
         search_result = db.search(route, "ID", int(ID))
@@ -26,7 +29,4 @@ async def info(route: str, ID: str | None = None):
             status_code=200
         )
     except Exception as e:
-        return JSONResponse(
-            {"error": parser.get_full_name(e)},
-            status_code=500
-        )
+        return parser.form_error(e)
