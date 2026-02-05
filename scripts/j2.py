@@ -13,8 +13,9 @@ def to_(obj: dict[str, ...], *, tab: int = 4, separators: tuple[str, str] = (', 
     :return: json-like string from input dictionary
     """
 
-    data = dumps(obj, indent=tab, separators=separators, ensure_ascii=False)
-    return data if not string_mode else data.replace('\n', '').replace(' ' * tab, ' ').strip()
+    if string_mode:
+        return dumps(obj, separators=(',', ':'), ensure_ascii=False)
+    return dumps(obj, indent=tab, separators=separators, ensure_ascii=False)
 
 
 def from_(json: str) -> dict[str, ...]:
