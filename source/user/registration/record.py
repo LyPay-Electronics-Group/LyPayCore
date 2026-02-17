@@ -21,7 +21,9 @@ def get_new_ID():
 
 @router.get("/new")
 async def new(name: str = None, login: str = None, password: str = None, group: str = None, email: str = None, tag: str = None, owner_flag: str = None):
-    if any(t is None for t in (name, group, email, owner_flag)):
+    if any(t is None for t in (name, group, email, owner_flag)) or owner_flag not in ('tg_owner', 'tg_guest',
+                                                                                      'web_owner', 'web_guest',
+                                                                                      'integration'):
         return parser.form_error_bad_parsing()
 
     try:
@@ -39,7 +41,7 @@ async def new(name: str = None, login: str = None, password: str = None, group: 
                       email,      # email
                       tag,        # tag
                       0,          # balance
-                      owner_flag, # owner :  'owner' | 'integration' | 'guest' | 'web'
+                      owner_flag, # owner :  '[tg/web]_owner' | '[tg/web]_guest' | 'integration'
                       unix()      # last_online
                   ])
         if not exists(PATHS.QR + f"{ID}.png"):

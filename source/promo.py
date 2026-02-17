@@ -29,14 +29,13 @@ async def get(ID: str = None):
         ID = ID.lower()
         record = db.search("promo", "ID", ID)
         if record is None:
-            return JSONResponse(
-                {"error": "ID not found", "message": "ID not found"},
-                status_code=404
-            )
+            raise lpsql.exceptions.IDNotFound
         return JSONResponse(
             record,
             status_code=200
         )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
 
