@@ -6,17 +6,15 @@ class PATHS:
 
     QR = DATA + 'QR/'
 
-    IMAGES = DATA + 'images/'
+    STORES = DATA + 'stores/'
     EMAIL = DATA + 'email/'
 
-    STORES_KEYBOARDS = DATA + 'stores keyboards/'
-    STORES_LOGOS = DATA + 'stores logos/'
-    OLD_LOGOS = DATA + 'changed stores logos/'
-    STORES_CHEQUES = DATA + 'cheques/'
+    STORES_ITEMS = STORES + 'items/'
+    STORES_AVATARS = STORES + 'avatars/'
 
     LAUNCH_SETTINGS = DATA + 'settings.json'
 
-    all = (DATA, IMAGES, LAUNCH_SETTINGS, QR, STORES_KEYBOARDS, STORES_LOGOS, STORES_CHEQUES, OLD_LOGOS, EMAIL)
+    all = (DATA, QR, STORES, EMAIL, STORES_ITEMS, STORES_AVATARS)
 
 
 VERSION = "test-1"
