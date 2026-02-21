@@ -17,6 +17,9 @@ class PATHS:
     all = (DATA, QR, STORES, EMAIL, STORES_ITEMS, STORES_AVATARS)
 
 
+CHUNK_SIZE = 1024
+
+
 VERSION = "test-1"
 NAME = ""
 BUILD = 6
