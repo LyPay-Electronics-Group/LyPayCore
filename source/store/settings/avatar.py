@@ -12,7 +12,7 @@ router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
-@router.get("/avatar/get")
+@router.get("/get")
 async def get_avatar(ID: int = None, unix: float = None):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -46,7 +46,7 @@ async def get_avatar(ID: int = None, unix: float = None):
         return parser.form_error(e)
 
 
-@router.post("/avatar/set")
+@router.post("/set")
 async def set_avatar(avatar: UploadFile, ID: int = None):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -65,7 +65,7 @@ async def set_avatar(avatar: UploadFile, ID: int = None):
         return parser.form_error(e)
 
 
-@router.get("/avatar/remove")
+@router.get("/remove")
 async def remove_avatar(ID: int = None):
     if ID is None:
         return parser.form_error_bad_parsing()
