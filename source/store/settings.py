@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile
 from fastapi.responses import JSONResponse, FileResponse
 
 from os.path import getmtime, exists
+from os import remove
 
 from scripts import lpsql, parser, memory
 from data import config as cfg
@@ -60,5 +61,24 @@ async def set_avatar(avatar: UploadFile, ID: int = None):
                 {"ok": True},
                 status_code=200
             )
+    except Exception as e:
+        return parser.form_error(e)
+
+
+@router.get("/avatar/remove")
+async def remove_avatar(ID: int = None):
+    if ID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        path = cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"
+        if exists(path):
+            remove(path)
+
+        db.update("stores", "ID", ID, "logo", False)
+        return JSONResponse(
+            {"ok": True},
+            status_code=200
+        )
     except Exception as e:
         return parser.form_error(e)
