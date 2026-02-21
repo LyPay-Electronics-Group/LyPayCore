@@ -20,9 +20,3 @@ class PATHS:
 VERSION = "test-1"
 NAME = ""
 BUILD = 6
-
-NEW_LINE_ANCHOR = "[([*br*])]"
-OPEN_CURLY_BRACKET_ANCHOR = "[([*ocb*])]"
-CLOSE_CURLY_BRACKET_ANCHOR = "[([*ccb*])]"
-QUOTATION_ANCHOR = "[([*q*])]"
-SPACE_ANCHOR = "[([*s*])]"
