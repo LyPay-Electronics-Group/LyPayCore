@@ -19,7 +19,10 @@ async def get_avatar(ID: int = None, unix: float = None):
 
     try:
         path = cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"
-        has_icon = db.search("stores", "ID", ID)["logo"]
+        if db.search("stores", "ID", ID) is not None:
+            has_icon = db.search("stores", "ID", ID)["logo"]
+        else:
+            raise lpsql.exceptions.IDNotFound()
 
         if not bool(has_icon):
             return JSONResponse(
@@ -52,7 +55,11 @@ async def set_avatar(avatar: UploadFile, ID: int = None):
         return parser.form_error_bad_parsing()
 
     try:
-        has_icon = db.search("stores", "ID", ID)["logo"]
+        if db.search("stores", "ID", ID) is not None:
+            has_icon = db.search("stores", "ID", ID)["logo"]
+        else:
+            raise lpsql.exceptions.IDNotFound()
+
         if not bool(has_icon):
             db.update("stores", "ID", ID, "logo", True)
 
@@ -61,6 +68,8 @@ async def set_avatar(avatar: UploadFile, ID: int = None):
                 {"ok": True},
                 status_code=200
             )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
 
@@ -71,6 +80,9 @@ async def remove_avatar(ID: int = None):
         return parser.form_error_bad_parsing()
 
     try:
+        if db.search("stores", "ID", ID) is None:
+            raise lpsql.exceptions.IDNotFound()
+
         path = cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"
         if exists(path):
             remove(path)
@@ -80,5 +92,7 @@ async def remove_avatar(ID: int = None):
             {"ok": True},
             status_code=200
         )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
