@@ -20,6 +20,14 @@ class PATHS:
 CHUNK_SIZE = 1024
 
 
+class CENSOR:
+    CORRECT_NAME_LITERALS = set("абвгдеёжзийклмнопрстуфхцчшщъыьэюя -–АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ")
+    CORRECT_LOGIN_LITERALS = set("0123456789abcdefghijklmnopqrstuvwxyz._-ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+    STORE_NAME_LENGTH = 100
+    STORE_DESCRIPTION_LENGTH = 900
+
+
 VERSION = "test-1"
 NAME = ""
 BUILD = 6
