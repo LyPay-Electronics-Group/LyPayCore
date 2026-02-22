@@ -13,14 +13,15 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/get")
-async def get_avatar(ID: int = None, unix: float = None):
+async def get_avatar(ID: str = None, unix: float = None):
     if ID is None:
         return parser.form_error_bad_parsing()
 
     try:
         path = cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"
-        if db.search("stores", "ID", ID) is not None:
-            has_icon = db.search("stores", "ID", ID)["logo"]
+        store = db.search("stores", "ID", ID)
+        if store is not None:
+            has_icon = store["logo"]
         else:
             raise lpsql.exceptions.IDNotFound()
 
@@ -50,13 +51,14 @@ async def get_avatar(ID: int = None, unix: float = None):
 
 
 @router.post("/set")
-async def set_avatar(avatar: UploadFile, ID: int = None):
+async def set_avatar(avatar: UploadFile, ID: str = None):
     if ID is None:
         return parser.form_error_bad_parsing()
 
     try:
-        if db.search("stores", "ID", ID) is not None:
-            has_icon = db.search("stores", "ID", ID)["logo"]
+        store = db.search("stores", "ID", ID)
+        if store is not None:
+            has_icon = store["logo"]
         else:
             raise lpsql.exceptions.IDNotFound()
 
@@ -75,7 +77,7 @@ async def set_avatar(avatar: UploadFile, ID: int = None):
 
 
 @router.get("/remove")
-async def remove_avatar(ID: int = None):
+async def remove_avatar(ID: str = None):
     if ID is None:
         return parser.form_error_bad_parsing()
 
