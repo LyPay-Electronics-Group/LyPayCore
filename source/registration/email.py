@@ -12,7 +12,7 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 @router.get("/send")
 async def send(email: str = None, route: str = None, code: str = None, keys: str = None):
-    if any(t is None for t in (email, route, code)) or route not in ('main', 'guest'):
+    if any(t is None for t in (email, route, code)) or route not in ('main', 'guest', 'store'):
         return parser.form_error_bad_parsing()
 
     try:
@@ -29,7 +29,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                 keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "main.html", participant=email,
                                     subject="Регистрация в LyPay", keys=keys)
-        else:
+        elif route == 'guest':
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
@@ -43,6 +43,21 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                 keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "guest.html", participant=email,
                                     subject="Регистрация в LyPay: Гостевой доступ", keys=keys)
+        else:
+            if keys is None:
+                keys = {
+                    "VERSION": VERSION,
+                    "BUILD": BUILD,
+                    "NAME": f' ({NAME})' if NAME != '' else '',
+                    "CODE": code
+                }
+            else:
+                keys = j2.from_(keys)
+                keys["CODE"] = code
+            await mailer.send_async(path=PATHS.EMAIL + "store.html", participant=email,
+                                    subject="LyPay: приглашение на Благотворительную Ярмарку-2026", keys=keys,
+                                    files=[PATHS.EMAIL + "LyPay Store Manual.pdf"])
+            # TODO: записать в store_form_link
         return JSONResponse(
             {'ok': True},
             status_code=200

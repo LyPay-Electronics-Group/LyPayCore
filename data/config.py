@@ -6,25 +6,28 @@ class PATHS:
 
     QR = DATA + 'QR/'
 
-    IMAGES = DATA + 'images/'
+    STORES = DATA + 'stores/'
     EMAIL = DATA + 'email/'
 
-    STORES_KEYBOARDS = DATA + 'stores keyboards/'
-    STORES_LOGOS = DATA + 'stores logos/'
-    OLD_LOGOS = DATA + 'changed stores logos/'
-    STORES_CHEQUES = DATA + 'cheques/'
+    STORES_ITEMS = STORES + 'items/'
+    STORES_AVATARS = STORES + 'avatars/'
 
     LAUNCH_SETTINGS = DATA + 'settings.json'
 
-    all = (DATA, IMAGES, LAUNCH_SETTINGS, QR, STORES_KEYBOARDS, STORES_LOGOS, STORES_CHEQUES, OLD_LOGOS, EMAIL)
+    all = (DATA, QR, STORES, EMAIL, STORES_ITEMS, STORES_AVATARS)
+
+
+CHUNK_SIZE = 1024
+
+
+class CENSOR:
+    CORRECT_NAME_LITERALS = set("абвгдеёжзийклмнопрстуфхцчшщъыьэюя -–АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ")
+    CORRECT_LOGIN_LITERALS = set("0123456789abcdefghijklmnopqrstuvwxyz._-ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+    STORE_NAME_LENGTH = 100
+    STORE_DESCRIPTION_LENGTH = 900
 
 
 VERSION = "test-1"
 NAME = ""
-BUILD = 5
-
-NEW_LINE_ANCHOR = "[([*br*])]"
-OPEN_CURLY_BRACKET_ANCHOR = "[([*ocb*])]"
-CLOSE_CURLY_BRACKET_ANCHOR = "[([*ccb*])]"
-QUOTATION_ANCHOR = "[([*q*])]"
-SPACE_ANCHOR = "[([*s*])]"
+BUILD = 6
