@@ -1,8 +1,12 @@
 from fastapi.responses import JSONResponse
 from traceback import format_exc
+from random import choice as r_choice
 
 
-def get_full_name(obj: Exception):
+alphabet = tuple("0123456789abcdefghijklmnopqrstuvwxyz")
+
+
+def get_full_name(obj: Exception) -> str:
     """
     Возвращает полное название объекта, включая все родительские классы и портранства имён
 
@@ -13,6 +17,17 @@ def get_full_name(obj: Exception):
     if module is None or module == str.__class__.__module__:
         return obj.__class__.__name__
     return module + '.' + obj.__class__.__name__
+
+
+def generate_code(length: int) -> str:
+    """
+    Создаёт цифро-буквенный код, состоящий из символов ``0-9`` и ``a-z``
+
+    :param length: необходимая длина кода
+    :return: код (строка)
+    """
+
+    return ''.join(r_choice(alphabet) for _ in range(length))
 
 
 def form_error(error: Exception, message: str | None = None, status_code: int = 500) -> JSONResponse:
