@@ -32,14 +32,16 @@ async def get_item(itemID: str = None):
 
 
 @router.get("/all")
-async def get_all_items(storeID: str = None):
+async def get_all_items(storeID: str = None, active_filter: bool = None):
     if storeID is None:
         return parser.form_error_bad_parsing()
+    if active_filter is None:
+        active_filter = False
 
     try:
         search_result = list()
         for item in db.search("items", "storeID", storeID, True):
-            if item['active']:
+            if active_filter and item['active']:
                 search_result.append(item)
 
         if len(search_result) == 0:
