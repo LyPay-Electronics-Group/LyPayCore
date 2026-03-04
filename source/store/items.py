@@ -31,6 +31,26 @@ async def get_item(itemID: str = None):
         return parser.form_error(e)
 
 
+@router.get("/all")
+async def get_all_items(storeID: str = None):
+    if storeID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        search_result = db.search("items", "storeID", storeID, True)
+        if len(search_result) == 0:
+            raise lpsql.exceptions.IDNotFound
+
+        return JSONResponse(
+            {"result": search_result},
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
+
+
 @router.get("/add")
 async def create_item(storeID: str = None, name: str = None, price: int = None):
     if storeID is None or name is None or price is None:
