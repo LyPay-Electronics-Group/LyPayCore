@@ -1,3 +1,5 @@
+from re import search
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -7,6 +9,26 @@ from data import config as cfg
 
 router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+
+
+@router.get("/get")
+async def get_item(itemID: str = None):
+    if itemID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        search_result = db.search("items", "itemID", itemID)
+        if search_result is None:
+            raise lpsql.exceptions.IDNotFound
+
+        return JSONResponse(
+            search_result,
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
 
 
 @router.get("/add")
