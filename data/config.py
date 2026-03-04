@@ -30,4 +30,4 @@ class CENSOR:
 
 VERSION = "test-1"
 NAME = ""
-BUILD = 6
+BUILD = 7
