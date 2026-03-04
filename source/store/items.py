@@ -37,7 +37,11 @@ async def get_all_items(storeID: str = None):
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("items", "storeID", storeID, True)
+        search_result = list()
+        for item in db.search("items", "storeID", storeID, True):
+            if item['active']:
+                search_result.append(item)
+
         if len(search_result) == 0:
             raise lpsql.exceptions.IDNotFound
 
