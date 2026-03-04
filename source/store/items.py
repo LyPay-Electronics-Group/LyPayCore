@@ -37,3 +37,21 @@ async def create_item(storeID: str = None, name: str = None, price: int = None):
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
+
+
+@router.get("/del")
+async def delete_item(itemID: str = None):
+    if itemID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        db.update("items", "itemID", itemID, "active", False)
+
+        return JSONResponse(
+            {'ok': True},
+            status_code=200
+        )
+    except lpsql.exceptions.EntryNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
