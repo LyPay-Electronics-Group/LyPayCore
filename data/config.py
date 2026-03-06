@@ -19,6 +19,8 @@ class PATHS:
 
 CHUNK_SIZE = 1024
 
+IDGEN_TIMEOUT = .01
+
 
 class CENSOR:
     CORRECT_NAME_LITERALS = set("абвгдеёжзийклмнопрстуфхцчшщъыьэюя -–АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ")

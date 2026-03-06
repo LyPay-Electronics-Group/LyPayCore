@@ -1,12 +1,14 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from asyncio import sleep
+
 from os.path import exists
 from dotenv import load_dotenv
 
 from scripts import parser, memory, lpsql, censor, idgen
 from scripts.unix import unix
-from data.config import PATHS
+from data.config import PATHS, IDGEN_TIMEOUT
 
 
 router = APIRouter()
@@ -30,6 +32,7 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
     try:
         ID = idgen.generate_ID()
         while ID in db.searchall("users", "ID"):
+            await sleep(IDGEN_TIMEOUT)
             ID = idgen.generate_ID()
 
         db.insert("users",
