@@ -35,9 +35,8 @@ async def get_item(itemID: str = None):
 async def get_all_items(storeID: str = None, active_filter: bool = None):
     if storeID is None:
         return parser.form_error_bad_parsing()
-    if active_filter is None:
-        active_filter = False
 
+    active_filter = bool(active_filter)
     try:
         search_result = list()
         for item in db.search("items", "storeID", storeID, True):
