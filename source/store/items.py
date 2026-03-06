@@ -1,5 +1,3 @@
-from re import search
-
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
