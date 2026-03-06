@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser
+from scripts import lpsql, parser, idgen
 from data import config as cfg
 
 
@@ -64,9 +64,9 @@ async def create_item(storeID: str = None, name: str = None, price: int = None):
         if storeID not in db.searchall("stores", "ID"):
             raise lpsql.exceptions.IDNotFound
 
-        itemID = f"{storeID}_{parser.generate_code(6)}"
+        itemID = f"{storeID}_{idgen.generate_code(6)}"
         while itemID in db.searchall("items", "itemID"):
-            itemID = f"{storeID}_{parser.generate_code(6)}"
+            itemID = f"{storeID}_{idgen.generate_code(6)}"
 
         db.insert("items", [
             itemID,

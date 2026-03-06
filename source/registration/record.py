@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from os.path import exists
 from dotenv import load_dotenv
 
-from scripts import parser, memory, lpsql, censor
+from scripts import parser, memory, lpsql, censor, idgen
 from scripts.unix import unix
 from data.config import PATHS
 
@@ -28,9 +28,9 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
         return parser.form_error(AttributeError(), "bad censor flag: login", 406)
 
     try:
-        ID = parser.generate_ID()
+        ID = idgen.generate_ID()
         while ID in db.searchall("users", "ID"):
-            ID = parser.generate_ID()
+            ID = idgen.generate_ID()
 
         db.insert("users",
                   [
