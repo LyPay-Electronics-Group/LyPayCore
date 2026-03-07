@@ -1,23 +1,20 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from asyncio import sleep
+
 from os.path import exists
 from dotenv import load_dotenv
-from random import randint
 
-from scripts import parser, memory, lpsql, censor
+from scripts import parser, memory, lpsql, censor, idgen
 from scripts.unix import unix
-from data.config import PATHS
+from data.config import PATHS, IDGEN_TIMEOUT
 
 
 router = APIRouter()
 db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 firewall3 = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 load_dotenv()
-
-
-def generate_new_user_ID():
-    return randint(1, int(1e9))
 
 
 @router.get("/user")
@@ -33,9 +30,10 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
         return parser.form_error(AttributeError(), "bad censor flag: login", 406)
 
     try:
-        ID = generate_new_user_ID()
+        ID = idgen.generate_ID()
         while ID in db.searchall("users", "ID"):
-            ID = generate_new_user_ID()
+            await sleep(IDGEN_TIMEOUT)
+            ID = idgen.generate_ID()
 
         db.insert("users",
                   [

@@ -2,7 +2,7 @@ from fastapi.responses import JSONResponse
 from traceback import format_exc
 
 
-def get_full_name(obj: Exception):
+def get_full_name(obj: Exception) -> str:
     """
     Возвращает полное название объекта, включая все родительские классы и портранства имён
 
@@ -27,7 +27,13 @@ def form_error(error: Exception, message: str | None = None, status_code: int = 
 
     if message is None:
         print("got an error during handling an event call:", format_exc(), sep='\n')
-    return JSONResponse({'error': get_full_name(error), "message": error.__str__() if message is None else message}, status_code=status_code)
+    return JSONResponse(
+        {
+            'error': get_full_name(error),
+            'message': error.__str__() if message is None else message
+        },
+        status_code=status_code
+    )
 
 
 def form_error_bad_parsing() -> JSONResponse:
