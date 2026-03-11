@@ -17,11 +17,6 @@ class PATHS:
     all = (DATA, QR, STORES, EMAIL, STORES_ITEMS, STORES_AVATARS)
 
 
-CHUNK_SIZE = 1024
-
-IDGEN_TIMEOUT = .01
-
-
 class CENSOR:
     CORRECT_NAME_LITERALS = set("абвгдеёжзийклмнопрстуфхцчшщъыьэюя -–АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ")
     CORRECT_LOGIN_LITERALS = set("0123456789abcdefghijklmnopqrstuvwxyz._-ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -30,6 +25,10 @@ class CENSOR:
     STORE_DESCRIPTION_LENGTH = 900
 
 
+CHUNK_SIZE = 1024
+IDGEN_TIMEOUT = .01
+
+
 VERSION = "test-1"
 NAME = ""
-BUILD = 8
+BUILD = 9
