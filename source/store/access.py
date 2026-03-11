@@ -8,7 +8,7 @@ from data import config as cfg
 
 router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
-firewall3 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
+firewall4 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 
 
 @router.get("/list")
@@ -46,7 +46,7 @@ async def access_add(storeID: str = None, userID: int = None):
             "shopkeepers",
             [userID, storeID]
         )
-        firewall3.insert(
+        firewall4.insert(
             "stores",
             [
                 userID,  # ID
@@ -58,6 +58,29 @@ async def access_add(storeID: str = None, userID: int = None):
         return JSONResponse(
             {"ok": True},
             status_code=201
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
+
+
+@router.get("/del")
+async def access_del(storeID: str = None, userID: int = None):
+    if storeID is None or userID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        if db.search("stores", "ID", storeID) is None:
+            raise lpsql.exceptions.IDNotFound
+        if db.search("users", "ID", userID) is None:
+            raise lpsql.exceptions.IDNotFound
+
+        db.manual(f"delete * from shopkeepers where userID={userID}")
+        firewall4.manual(f"delete * from stores where ID={userID}")
+        return JSONResponse(
+            {"ok": True},
+            status_code=200
         )
     except lpsql.exceptions.IDNotFound as e:
         return parser.form_error(e, "ID not found", 404)
