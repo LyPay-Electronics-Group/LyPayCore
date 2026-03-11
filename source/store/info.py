@@ -1,9 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from asyncio import sleep
-
-from scripts import lpsql, parser, idgen
+from scripts import lpsql, parser
 from data import config as cfg
 
 
