@@ -13,7 +13,7 @@ from data.config import PATHS, IDGEN_TIMEOUT
 
 router = APIRouter()
 db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
-firewall3 = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
+firewall4 = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 load_dotenv()
 
 
@@ -91,7 +91,7 @@ async def new_store(name: str = None, storeID: str = None, hostID: int = None, e
             ]
         )
         # TODO: удалить из store_form_link
-        firewall3.insert(
+        firewall4.insert(
             "stores",
             [
                 hostID,                              # ID
