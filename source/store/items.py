@@ -78,7 +78,7 @@ async def create_item(storeID: str = None, name: str = None, price: int = None):
             True    # active flag
         ])
         return JSONResponse(
-            {'ok': True},
+            {'generated': itemID},
             status_code=201
         )
     except lpsql.exceptions.IDNotFound as e:
@@ -111,13 +111,29 @@ async def edit_item(itemID: str = None, name: str = None, price: int = None):
         return parser.form_error_bad_parsing()
 
     try:
+        item = db.search("items", "itemID", itemID)
         if name is not None:
-            db.update("items", "itemID", itemID, "name", name)
+            item["name"] = name
         if price is not None:
-            db.update("items", "itemID", itemID, "price", price)
+            item["price"] = price
+
+        db.update("items", "itemID", itemID, "active", False)
+
+        storeID = item["storeID"]
+        itemID = f"{storeID}_{idgen.generate_code(6)}"
+        while itemID in db.searchall("items", "itemID"):
+            await sleep(cfg.IDGEN_TIMEOUT)
+            itemID = f"{storeID}_{idgen.generate_code(6)}"
+        db.insert("items", [
+            itemID,
+            storeID,
+            item["name"],
+            item["price"],
+            True    # active flag
+        ])
 
         return JSONResponse(
-            {'ok': True},
+            {'updated': itemID},
             status_code=200
         )
     except lpsql.exceptions.EntryNotFound as e:
