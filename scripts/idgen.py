@@ -38,21 +38,21 @@ class IDGenerator:
         return r_rand(1, 10 ** length)
 
 
-    async def userID(self) -> str:
+    async def userID(self) -> int:
         """
         Создаёт уникальный userID (с проверкой корректности)
 
         :return: код
         """
 
-        u = IDGEN.USER_ID.format(
+        u = int(IDGEN.USER_ID.format(
             _=self.generate_id(IDGEN.USER_ID_LENGTH)
-        )
+        ))
         while u in self.db.searchall("users", "ID"):
             await sleep(IDGEN.TIMEOUT)
-            u = IDGEN.USER_ID.format(
+            u = int(IDGEN.USER_ID.format(
                 _=self.generate_id(IDGEN.USER_ID_LENGTH)
-            )
+            ))
         return u
 
     async def storeID(self) -> str:
