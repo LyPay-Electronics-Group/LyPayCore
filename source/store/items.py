@@ -1,14 +1,14 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from asyncio import sleep
-
-from scripts import lpsql, parser, idgen
+from scripts import lpsql, parser
+from scripts.idgen import IDGenerator
 from data import config as cfg
 
 
 router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+idgen = IDGenerator(db)
 
 
 @router.get("/get")
@@ -65,10 +65,7 @@ async def create_item(storeID: str = None, name: str = None, price: int = None):
         if storeID not in db.searchall("stores", "ID"):
             raise lpsql.exceptions.IDNotFound
 
-        itemID = f"{storeID}_{idgen.generate_code(6)}"
-        while itemID in db.searchall("items", "itemID"):
-            await sleep(cfg.IDGEN_TIMEOUT)
-            itemID = f"{storeID}_{idgen.generate_code(6)}"
+        itemID = await idgen.itemID(storeID)
 
         db.insert("items", [
             itemID,
@@ -120,10 +117,7 @@ async def edit_item(itemID: str = None, name: str = None, price: int = None):
         db.update("items", "itemID", itemID, "active", False)
 
         storeID = item["storeID"]
-        itemID = f"{storeID}_{idgen.generate_code(6)}"
-        while itemID in db.searchall("items", "itemID"):
-            await sleep(cfg.IDGEN_TIMEOUT)
-            itemID = f"{storeID}_{idgen.generate_code(6)}"
+        itemID = await idgen.itemID(storeID)
         db.insert("items", [
             itemID,
             storeID,
