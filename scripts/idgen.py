@@ -38,11 +38,11 @@ class IDGenerator:
         return r_rand(1, 10 ** length)
 
 
-    async def userID(self) -> int:
+    async def userID(self) -> str:
         """
         Создаёт уникальный userID (с проверкой корректности)
 
-        :return: код (число)
+        :return: код
         """
 
         u = IDGEN.USER_ID.format(
@@ -59,7 +59,7 @@ class IDGenerator:
         """
         Создаёт уникальный storeID (с проверкой корректности)
 
-        :return: код (строка)
+        :return: код
         """
 
         s = IDGEN.STORE_ID.format(
@@ -77,7 +77,7 @@ class IDGenerator:
         Создаёт уникальный itemID (с проверкой корректности)
 
         :param storeID: ID магазина
-        :return: код (строка)
+        :return: код
         """
 
         i = IDGEN.ITEM_ID.format(
@@ -97,7 +97,7 @@ class IDGenerator:
         Создаёт уникальный chequeID (с проверкой корректности)
 
         :param storeID: ID магазина
-        :return: код (строка)
+        :return: код
         """
 
         c = IDGEN.CHEQUE_ID.format(
