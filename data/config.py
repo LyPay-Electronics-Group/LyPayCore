@@ -25,8 +25,19 @@ class CENSOR:
     STORE_DESCRIPTION_LENGTH = 900
 
 
+class IDGEN:
+    TIMEOUT = .01
+
+    ITEM_ID_LENGTH = 7
+    CHEQUE_ID_LENGTH = 6
+
+    USER_ID = "{_}"
+    STORE_ID = "{_}"
+    ITEM_ID = "{storeID}_{_}"
+    CHEQUE_ID = "{storeID}_{_}"
+
+
 CHUNK_SIZE = 1024
-IDGEN_TIMEOUT = .01
 
 
 VERSION = "test-1"
