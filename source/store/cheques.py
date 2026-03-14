@@ -1,8 +1,14 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from jwt import decode as jwt_decode
+
+from dotenv import load_dotenv
+from os import getenv
+
 from scripts import lpsql, parser
 from scripts.idgen import IDGenerator
+from scripts.unix import unix
 from data import config as cfg
 
 
@@ -10,14 +16,16 @@ router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 idgen = IDGenerator(db)
 
+load_dotenv()
+
 
 @router.get("/get")
-async def get_item(itemID: str = None):
-    if itemID is None:
+async def get_cheque(chequeID: str = None):
+    if chequeID is None:
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("items", "itemID", itemID)
+        search_result = db.search("cheques", "chequeID", chequeID)
         if search_result is None:
             raise lpsql.exceptions.IDNotFound
 
@@ -32,14 +40,14 @@ async def get_item(itemID: str = None):
 
 
 @router.get("/all")
-async def get_all_items(storeID: str = None, active_filter: bool = None):
+async def get_all_cheques(storeID: str = None, active_filter: bool = None):
     if storeID is None:
         return parser.form_error_bad_parsing()
 
     active_filter = bool(active_filter)
     try:
         search_result = list()
-        for item in db.search("items", "storeID", storeID, True):
+        for item in db.search("cheques", "storeID", storeID, True):
             if active_filter and item['active']:
                 search_result.append(item)
 
@@ -57,25 +65,27 @@ async def get_all_items(storeID: str = None, active_filter: bool = None):
 
 
 @router.get("/add")
-async def create_item(storeID: str = None, name: str = None, price: int = None):
-    if storeID is None or name is None or price is None:
+async def create_cheque(storeID: str = None, customer: int = None, items: str = None):
+    if storeID is None or customer is None or items is None:
         return parser.form_error_bad_parsing()
 
     try:
         if storeID not in db.searchall("stores", "ID"):
             raise lpsql.exceptions.IDNotFound
 
-        itemID = await idgen.itemID(storeID)
+        parsed_items = jwt_decode(items, getenv("LYPAY_JWT"), algorithm="HS256")
+        chequeID = await idgen.chequeID(storeID)
 
-        db.insert("items", [
-            itemID,
+        db.insert("cheques", [
+            chequeID,
             storeID,
-            name,
-            price,
-            True    # active flag
+            unix(),
+            customer,
+            parsed_items,
+            True  # active flag
         ])
         return JSONResponse(
-            {'generated': itemID},
+            {'generated': chequeID},
             status_code=201
         )
     except lpsql.exceptions.IDNotFound as e:
@@ -84,50 +94,16 @@ async def create_item(storeID: str = None, name: str = None, price: int = None):
         return parser.form_error(e)
 
 
-@router.get("/rem")
-async def remove_item(itemID: str = None):
-    if itemID is None:
+@router.get("/de")
+async def deactivate_cheque(chequeID: str = None):
+    if chequeID is None:
         return parser.form_error_bad_parsing()
 
     try:
-        db.update("items", "itemID", itemID, "active", False)
+        db.update("cheques", "chequeID", chequeID, "active", False)
 
         return JSONResponse(
             {'ok': True},
-            status_code=200
-        )
-    except lpsql.exceptions.EntryNotFound as e:
-        return parser.form_error(e, "ID not found", 404)
-    except Exception as e:
-        return parser.form_error(e)
-
-
-@router.get("/edit")
-async def edit_item(itemID: str = None, name: str = None, price: int = None):
-    if itemID is None or (name is None and price is None):
-        return parser.form_error_bad_parsing()
-
-    try:
-        item = db.search("items", "itemID", itemID)
-        if name is not None:
-            item["name"] = name
-        if price is not None:
-            item["price"] = price
-
-        db.update("items", "itemID", itemID, "active", False)
-
-        storeID = item["storeID"]
-        itemID = await idgen.itemID(storeID)
-        db.insert("items", [
-            itemID,
-            storeID,
-            item["name"],
-            item["price"],
-            True    # active flag
-        ])
-
-        return JSONResponse(
-            {'updated': itemID},
             status_code=200
         )
     except lpsql.exceptions.EntryNotFound as e:

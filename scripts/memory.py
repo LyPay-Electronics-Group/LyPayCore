@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from data.config import PATHS, CHUNK_SIZE
 
 
-def qr(value: int):
+def qr(value: int | str):
     """
     Создание QR-кода по введённому числовому значению.
     QR будет сохранён в config.PATHS.QR с именем файла, равным `value`

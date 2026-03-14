@@ -1,18 +1,18 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from asyncio import sleep
-
 from os.path import exists
 from dotenv import load_dotenv
 
-from scripts import parser, memory, lpsql, censor, idgen
+from scripts import parser, memory, lpsql, censor
+from scripts.idgen import IDGenerator
 from scripts.unix import unix
-from data.config import PATHS, IDGEN_TIMEOUT
+from data.config import PATHS
 
 
 router = APIRouter()
 db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+idgen = IDGenerator(db)
 firewall4 = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 load_dotenv()
 
@@ -30,24 +30,23 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
         return parser.form_error(AttributeError(), "bad censor flag: login", 406)
 
     try:
-        ID = idgen.generate_ID()
-        while ID in db.searchall("users", "ID"):
-            await sleep(IDGEN_TIMEOUT)
-            ID = idgen.generate_ID()
+        ID = await idgen.userID()
 
-        db.insert("users",
-                  [
-                      ID,         # ID
-                      name,       # name
-                      login,      # login
-                      password,   # password
-                      group,      # class
-                      email,      # email
-                      tag,        # tag
-                      0,          # balance
-                      owner_flag, # owner :  '[tg/web]_owner' | '[tg/web]_guest' | 'integration'
-                      unix()      # last_online
-                  ])
+        db.insert(
+            "users",
+            [
+                ID,         # ID
+                name,       # name
+                login,      # login
+                password,   # password
+                group,      # class
+                email,      # email
+                tag,        # tag
+                0,          # balance
+                owner_flag, # owner :  '[tg/web]_owner' | '[tg/web]_guest' | 'integration'
+                unix()      # last_online
+            ]
+        )
         if not exists(PATHS.QR + f"{ID}.png"):
             memory.qr(ID)
         return JSONResponse(
