@@ -65,8 +65,8 @@ async def access_add(storeID: str = None, userID: int = None):
         return parser.form_error(e)
 
 
-@router.get("/del")
-async def access_del(storeID: str = None, userID: int = None):
+@router.get("/rem")
+async def remove_access(storeID: str = None, userID: int = None):
     if storeID is None or userID is None:
         return parser.form_error_bad_parsing()
 
