@@ -40,6 +40,7 @@ class IDGEN:
     CHEQUE_ID = "{storeID}_{_}"
 
 
+JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
 CHUNK_SIZE = 1024
 
 

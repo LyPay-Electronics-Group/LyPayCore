@@ -3,9 +3,6 @@ from fastapi.responses import JSONResponse
 
 from jwt import decode as jwt_decode
 
-from dotenv import load_dotenv
-from os import getenv
-
 from scripts import lpsql, parser, j2
 from scripts.idgen import IDGenerator
 from scripts.unix import unix
@@ -15,8 +12,6 @@ from data import config as cfg
 router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 idgen = IDGenerator(db)
-
-load_dotenv()
 
 
 @router.get("/get")
@@ -73,7 +68,7 @@ async def create_cheque(storeID: str = None, customer: int = None, items: str = 
         if storeID not in db.searchall("stores", "ID"):
             raise lpsql.exceptions.IDNotFound
 
-        parsed_items = jwt_decode(items, getenv("LYPAY_JWT"), algorithm="HS256")
+        parsed_items = jwt_decode(items, cfg.JWT_KEY, algorithm="HS256")
         chequeID = await idgen.chequeID(storeID)
 
         db.insert("cheques", [
