@@ -23,6 +23,7 @@ class CENSOR:
 
     STORE_NAME_LENGTH = 100
     STORE_DESCRIPTION_LENGTH = 900
+    STORE_ITEM_NAME_LENGTH = 70
 
 
 class IDGEN:
@@ -39,9 +40,10 @@ class IDGEN:
     CHEQUE_ID = "{storeID}_{_}"
 
 
+JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
 CHUNK_SIZE = 1024
 
 
 VERSION = "test-1"
 NAME = ""
-BUILD = 9
+BUILD = 10

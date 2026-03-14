@@ -90,3 +90,21 @@ def check_store_description(description: str) -> bool:
         return False
 
     return True
+
+
+def check_store_item_name(name: str) -> bool:
+    """
+    Проверяет введённое название айтема. Оно может состоять из любых неблокирующих символов
+    (список блокирующих символов прописан в докстринге функции censor).
+
+    :param name: название
+    :return: True, если название прошло проверку, False -- в обратном случае
+    """
+
+    if not censor(name):
+        return False
+
+    if len(name) > CENSOR.STORE_ITEM_NAME_LENGTH:
+        return False
+
+    return True

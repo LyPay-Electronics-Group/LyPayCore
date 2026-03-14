@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser
+from scripts import lpsql, parser, censor
 from scripts.idgen import IDGenerator
 from data import config as cfg
 
@@ -61,6 +61,11 @@ async def create_item(storeID: str = None, name: str = None, price: int = None):
     if storeID is None or name is None or price is None:
         return parser.form_error_bad_parsing()
 
+    if not censor.check_store_item_name(name):
+        return parser.form_error(AttributeError(), "bad censor flag: store item name", 406)
+    if price < 0:
+        return parser.form_error(AttributeError(), "bad censor flag: store item price", 406)
+
     try:
         if storeID not in db.searchall("stores", "ID"):
             raise lpsql.exceptions.IDNotFound
@@ -106,6 +111,11 @@ async def remove_item(itemID: str = None):
 async def edit_item(itemID: str = None, name: str = None, price: int = None):
     if itemID is None or (name is None and price is None):
         return parser.form_error_bad_parsing()
+
+    if name is not None and not censor.check_store_item_name(name):
+        return parser.form_error(AttributeError(), "bad censor flag: store item name", 406)
+    if price is not None and price < 0:
+        return parser.form_error(AttributeError(), "bad censor flag: store item price", 406)
 
     try:
         item = db.search("items", "itemID", itemID)
