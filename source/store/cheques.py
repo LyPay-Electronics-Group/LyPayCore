@@ -65,15 +65,15 @@ async def get_all_cheques(storeID: str = None, active_filter: bool = None):
 
 
 @router.get("/add")
-async def create_cheque(storeID: str = None, customer: int = None, values: str = None):
-    if storeID is None or customer is None or values is None:
+async def create_cheque(storeID: str = None, customer: int = None, items: str = None):
+    if storeID is None or customer is None or items is None:
         return parser.form_error_bad_parsing()
 
     try:
         if storeID not in db.searchall("stores", "ID"):
             raise lpsql.exceptions.IDNotFound
 
-        parsed_values = jwt_decode(values, getenv("LYPAY_JWT"), algorithm="HS256")
+        parsed_items = jwt_decode(items, getenv("LYPAY_JWT"), algorithm="HS256")
         chequeID = await idgen.chequeID(storeID)
 
         db.insert("cheques", [
@@ -81,7 +81,7 @@ async def create_cheque(storeID: str = None, customer: int = None, values: str =
             storeID,
             unix(),
             customer,
-            parsed_values,
+            parsed_items,
             True  # active flag
         ])
         return JSONResponse(
