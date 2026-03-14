@@ -6,7 +6,7 @@ from jwt import decode as jwt_decode
 from dotenv import load_dotenv
 from os import getenv
 
-from scripts import lpsql, parser
+from scripts import lpsql, parser, j2
 from scripts.idgen import IDGenerator
 from scripts.unix import unix
 from data import config as cfg
@@ -81,7 +81,7 @@ async def create_cheque(storeID: str = None, customer: int = None, items: str = 
             storeID,
             unix(),
             customer,
-            parsed_items,
+            j2.to_(parsed_items, string_mode=True)[1:-1],
             True  # active flag
         ])
         return JSONResponse(
