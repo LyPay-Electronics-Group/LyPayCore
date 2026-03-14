@@ -28,6 +28,8 @@ class CENSOR:
 class IDGEN:
     TIMEOUT = .01
 
+    USER_ID_LENGTH = 9
+    STORE_ID_LENGTH = 3
     ITEM_ID_LENGTH = 7
     CHEQUE_ID_LENGTH = 6
 
