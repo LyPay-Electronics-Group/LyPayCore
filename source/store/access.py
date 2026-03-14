@@ -17,7 +17,10 @@ async def access_list(storeID: str = None):
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("shopkeepers", "storeID", storeID, True)
+        search_result = list()
+        for entry in db.search("shopkeepers", "storeID", storeID, True):
+            search_result.append(entry["userID"])
+
         if len(search_result) == 0:
             raise lpsql.exceptions.IDNotFound
 
