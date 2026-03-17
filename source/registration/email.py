@@ -6,7 +6,7 @@ from jwt import decode as jwt_decode
 from scripts import parser, lpsql, mailer
 from scripts.unix import unix
 from scripts.idgen import IDGenerator
-from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY
+from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY, EMAIL_SUBJECTS
 
 
 router = APIRouter()
@@ -31,7 +31,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                 keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
             keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "main.html", participant=email,
-                                    subject="Регистрация в LyPay", keys=keys)
+                                    subject=EMAIL_SUBJECTS.MAIN, keys=keys)
         elif route == 'guest':
             if keys is None:
                 keys = {
@@ -44,7 +44,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                 keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
             keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "guest.html", participant=email,
-                                    subject="Регистрация в LyPay: Гостевой доступ", keys=keys)
+                                    subject=EMAIL_SUBJECTS.GUEST, keys=keys)
         else:  # shopkeeper
             link = idgen.generate_code(16)
             if keys is None:
@@ -57,7 +57,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                 keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
             keys["CODE"] = link
             await mailer.send_async(path=PATHS.EMAIL + "store.html", participant=email,
-                                    subject="LyPay: приглашение на Благотворительную Ярмарку-2026", keys=keys,
+                                    subject=EMAIL_SUBJECTS.SHOPKEEPER, keys=keys,
                                     files=[PATHS.EMAIL + "LyPay Store Manual.pdf"])
             db.insert(
                 "store_form_link",

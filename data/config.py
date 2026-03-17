@@ -40,6 +40,12 @@ class IDGEN:
     CHEQUE_ID = "{storeID}_{_}"
 
 
+class EMAIL_SUBJECTS:
+    MAIN = "Регистрация в LyPay"
+    GUEST = "Регистрация в LyPay: Гостевой доступ"
+    SHOPKEEPER = "LyPay: приглашение на Благотворительную Ярмарку-2026"
+
+
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
 CHUNK_SIZE = 1024
 
