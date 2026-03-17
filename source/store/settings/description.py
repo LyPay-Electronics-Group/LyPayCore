@@ -33,6 +33,8 @@ async def get_description(ID: str = None):
 async def set_description(ID: str = None, new: str = None):
     if ID is None:
         return parser.form_error_bad_parsing()
+    if new is None:
+        new = ""
 
     try:
         store = db.search("stores", "ID", ID)
