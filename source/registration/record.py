@@ -103,3 +103,14 @@ async def new_store(name: str = None, storeID: str = None, hostID: int = None, e
         )
     except Exception as e:
         return parser.form_error(e)
+
+
+@router.get("/store_id")
+async def get_available_store_id():
+    try:
+        return JSONResponse(
+            {"ID": await idgen.storeID()},
+            status_code=201
+        )
+    except Exception as e:
+        return parser.form_error(e)
