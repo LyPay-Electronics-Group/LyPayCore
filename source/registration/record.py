@@ -58,9 +58,11 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
 
 
 @router.get("/store")
-async def new_store(name: str = None, storeID: str = None, hostID: int = None, email: str = None, description: str = None):
-    if any(t is None for t in (name, storeID, hostID, email)):
+async def new_store(name: str = None, storeID: str = None, hostID: int = None, email: str = None, description: str = None, link: str = None):
+    if any(t is None for t in (name, storeID, hostID, email, link)):
         return parser.form_error_bad_parsing()
+    if description is None:
+        description = ""
 
     if not censor.check_store_name(name):
         return parser.form_error(AttributeError(), "bad censor flag: store name", 406)
@@ -89,7 +91,7 @@ async def new_store(name: str = None, storeID: str = None, hostID: int = None, e
                 storeID  # storeID
             ]
         )
-        # TODO: удалить из store_form_link
+        db.manual(f"DELETE * FROM store_form_link WHERE link={link}")
         firewall4.insert(
             "stores",
             [
@@ -98,6 +100,17 @@ async def new_store(name: str = None, storeID: str = None, hostID: int = None, e
                 True,                                # access
                 "added via automatic register code"  # comment
             ]
+        )
+    except Exception as e:
+        return parser.form_error(e)
+
+
+@router.get("/store_id")
+async def get_available_store_id():
+    try:
+        return JSONResponse(
+            {"ID": await idgen.storeID()},
+            status_code=201
         )
     except Exception as e:
         return parser.form_error(e)

@@ -38,3 +38,23 @@ async def get_all_stores_ids():
         )
     except Exception as e:
         return parser.form_error(e)
+
+
+@router.get("/link")
+async def check_link(link: str = None):
+    if link is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        search_result = db.search("store_form_link", "link", link)
+        if search_result is None:
+            raise lpsql.exceptions.IDNotFound
+
+        return JSONResponse(
+            {"email": search_result["email"]},
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "link not found", 404)
+    except Exception as e:
+        return parser.form_error(e)

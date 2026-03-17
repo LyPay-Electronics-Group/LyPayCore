@@ -1,13 +1,17 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from scripts import parser, lpsql, mailer, j2
+from jwt import decode as jwt_decode
+
+from scripts import parser, lpsql, mailer
 from scripts.unix import unix
-from data.config import PATHS, VERSION, BUILD, NAME
+from scripts.idgen import IDGenerator
+from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY, EMAIL_SUBJECTS
 
 
 router = APIRouter()
 db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+idgen = IDGenerator(db)
 
 
 @router.get("/send")
@@ -21,43 +25,47 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                 keys = {
                     "VERSION": VERSION,
                     "BUILD": BUILD,
-                    "NAME": f' ({NAME})' if NAME != '' else '',
-                    "CODE": code
+                    "NAME": f' ({NAME})' if NAME != '' else ''
                 }
             else:
-                keys = j2.from_(keys)
-                keys["CODE"] = code
+                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
+            keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "main.html", participant=email,
-                                    subject="Регистрация в LyPay", keys=keys)
+                                    subject=EMAIL_SUBJECTS.MAIN, keys=keys)
         elif route == 'guest':
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
                     "BUILD": BUILD,
                     "NAME": f' ({NAME})' if NAME != '' else '',
-                    "CODE": code,
                     "UX": unix()
                 }
             else:
-                keys = j2.from_(keys)
-                keys["CODE"] = code
+                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
+            keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "guest.html", participant=email,
-                                    subject="Регистрация в LyPay: Гостевой доступ", keys=keys)
-        else:
+                                    subject=EMAIL_SUBJECTS.GUEST, keys=keys)
+        else:  # shopkeeper
+            link = idgen.generate_code(16)
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
                     "BUILD": BUILD,
-                    "NAME": f' ({NAME})' if NAME != '' else '',
-                    "CODE": code
+                    "NAME": f' ({NAME})' if NAME != '' else ''
                 }
             else:
-                keys = j2.from_(keys)
-                keys["CODE"] = code
+                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
+            keys["CODE"] = link
             await mailer.send_async(path=PATHS.EMAIL + "store.html", participant=email,
-                                    subject="LyPay: приглашение на Благотворительную Ярмарку-2026", keys=keys,
+                                    subject=EMAIL_SUBJECTS.SHOPKEEPER, keys=keys,
                                     files=[PATHS.EMAIL + "LyPay Store Manual.pdf"])
-            # TODO: записать в store_form_link
+            db.insert(
+                "store_form_link",
+                [
+                    link,
+                    email
+                ]
+            )
         return JSONResponse(
             {'ok': True},
             status_code=200

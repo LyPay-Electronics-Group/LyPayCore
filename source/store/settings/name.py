@@ -31,7 +31,7 @@ async def get_name(ID: str = None):
 
 @router.get("/set")
 async def set_name(ID: str = None, new: str = None):
-    if ID is None:
+    if ID is None or new is None:
         return parser.form_error_bad_parsing()
 
     try:

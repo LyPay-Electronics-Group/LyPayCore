@@ -90,11 +90,23 @@ async def create_cheque(storeID: str = None, customer: int = None, items: str = 
 
 
 @router.get("/de")
-async def deactivate_cheque(chequeID: str = None):
+async def cancel_cheque(chequeID: str = None):
     if chequeID is None:
         return parser.form_error_bad_parsing()
 
     try:
+        cheque = db.search("cheques", "chequeID", chequeID)
+        if cheque is None:
+            raise lpsql.exceptions.EntryNotFound
+
+        amount = 0
+        for itemID, multiplier in j2.from_('{' + cheque["items"] + '}').items():
+            item = db.search("items", "itemID", itemID)
+            if item is None:
+                raise lpsql.exceptions.IDNotFound
+            amount += item["price"] * multiplier
+        db.transfer(cheque["storeID"], cheque["customer"], amount)
+
         db.update("cheques", "chequeID", chequeID, "active", False)
 
         return JSONResponse(
@@ -103,5 +115,7 @@ async def deactivate_cheque(chequeID: str = None):
         )
     except lpsql.exceptions.EntryNotFound as e:
         return parser.form_error(e, "ID not found", 404)
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "item ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
