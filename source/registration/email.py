@@ -1,9 +1,11 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from jwt import decode as jwt_decode
+
 from scripts import parser, lpsql, mailer, j2
 from scripts.unix import unix
-from data.config import PATHS, VERSION, BUILD, NAME
+from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY
 
 
 router = APIRouter()
@@ -25,7 +27,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                     "CODE": code
                 }
             else:
-                keys = j2.from_(keys)
+                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
                 keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "main.html", participant=email,
                                     subject="Регистрация в LyPay", keys=keys)
@@ -39,7 +41,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                     "UX": unix()
                 }
             else:
-                keys = j2.from_(keys)
+                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
                 keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "guest.html", participant=email,
                                     subject="Регистрация в LyPay: Гостевой доступ", keys=keys)
@@ -52,7 +54,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                     "CODE": code
                 }
             else:
-                keys = j2.from_(keys)
+                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
                 keys["CODE"] = code
             await mailer.send_async(path=PATHS.EMAIL + "store.html", participant=email,
                                     subject="LyPay: приглашение на Благотворительную Ярмарку-2026", keys=keys,
