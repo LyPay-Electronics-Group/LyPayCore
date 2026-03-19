@@ -10,6 +10,7 @@ from data import config as cfg
 
 router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+firewall4 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 platform_name = get_platform_name()
 
 
@@ -39,5 +40,29 @@ async def get_machine_info():
             },
             status_code=200
         )
+    except Exception as e:
+        return parser.form_error(e)
+
+
+@router.get("/db")
+async def get_db_info(db_type: str = None, query: str = None):
+    if query is None or db_type is None or db_type not in ('main', 'fw'):
+        return parser.form_error_bad_parsing()
+
+    try:
+        result = None
+        if db_type == 'main':
+            result = db.manual(query)
+        elif db_type == 'fw':
+            result = firewall4.manual(query)
+
+        if result is None:
+            raise lpsql.exceptions.EntryNotFound
+        return JSONResponse(
+            {"result": result},
+            status_code=200
+        )
+    except lpsql.exceptions.EntryNotFound as e:
+        return parser.form_error(e, "db returned nothing", 404)
     except Exception as e:
         return parser.form_error(e)
