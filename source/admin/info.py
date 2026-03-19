@@ -29,13 +29,13 @@ async def get_machine_info():
         r = RAM()
         return JSONResponse(
             {
-                "cpu": f"{CPU():.1f}",
-                "ram_p": f"{r.percent:.1f}",
-                "ram_v": f"{(r.total - r.available) / 1073741824:.3f}",
-                "cpu_build": f"{sum(list(map(lambda p: p.cpu_percent(), python_processes))) / len(python_processes):.2f}",
-                "ram_build_p": f"{sum(list(map(lambda p: p.memory_percent(), python_processes))) / len(python_processes):.2f}",
-                "ram_build_v": f"{sum(list(map(lambda p: p.memory_info().rss, python_processes))) / 1073741824 / len(python_processes):.3f}",
-                "cpu_cores": '\n'.join([f" ❯ {n + 1}: {p}%" for n, p in enumerate(CPU(percpu=True))])
+                "cpu": CPU(),
+                "ram_p": r.percent,
+                "ram_v": (r.total - r.available) / 1073741824,
+                "cpu_build": sum(list(map(lambda p: p.cpu_percent(), python_processes))) / len(python_processes),
+                "ram_build_p": sum(list(map(lambda p: p.memory_percent(), python_processes))) / len(python_processes),
+                "ram_build_v": sum(list(map(lambda p: p.memory_info().rss, python_processes))) / 1073741824 / len(python_processes),
+                "cpu_cores": CPU(percpu=True)
             },
             status_code=200
         )
