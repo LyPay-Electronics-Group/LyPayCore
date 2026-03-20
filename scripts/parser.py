@@ -1,11 +1,6 @@
 from fastapi.responses import JSONResponse
 from traceback import format_exc
 
-from data.config import PATHS
-from scripts.lpsql import DataBase, Tables
-
-firewall4 = DataBase(PATHS.DATA + "lypay_firewall.db", Tables.FIREWALL)
-
 
 def get_full_name(obj: Exception) -> str:
     """
@@ -57,17 +52,3 @@ def form_error_bad_firewall_check() -> JSONResponse:
     """
 
     return JSONResponse({'error': "ConnectionRefusedError", 'message': "bad fw check"}, status_code=403)
-
-
-async def check_firewall(ID: int | str, fw: str) -> bool:
-    """
-    Проверяет, есть ли нужный ID в файерволле
-    :param ID: ID для проверки
-    :param fw: раздел файерволла (``main``, ``stores``, ``admins``)
-    :return: True, если введённому ID предоставлен доступ, и False в обратном случае
-    """
-
-    if fw not in ('main', 'stores', 'admins'):
-        raise AttributeError("введённый параметр fw не соответствует ожидаемому")
-
-    return firewall4.search(fw, "ID", ID) is not None
