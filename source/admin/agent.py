@@ -16,16 +16,10 @@ async def check_agent_status(userID: int = None):
         return parser.form_error_bad_parsing()
 
     try:
-        result = firewall4.search("admins", "ID", userID)
-        if result is None:
-            raise lpsql.exceptions.IDNotFound
-
         return JSONResponse(
-            {'result': result},
+            {'result': firewall4.search("admins", "ID", userID) is not None},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
-        return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
 
