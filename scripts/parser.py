@@ -43,3 +43,12 @@ def form_error_bad_parsing() -> JSONResponse:
     """
 
     return JSONResponse({'error': "ValueError", 'message': "bad parsing"}, status_code=400)
+
+
+def form_error_bad_firewall_check() -> JSONResponse:
+    """
+    Формирует респонс с ошибкой 403: bad fw check
+    :return: JSONResponse
+    """
+
+    return JSONResponse({'error': "ConnectionRefusedError", 'message': "bad fw check"}, status_code=403)
