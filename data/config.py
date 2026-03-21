@@ -40,10 +40,20 @@ class IDGEN:
     CHEQUE_ID = "{storeID}_{_}"
 
 
-class EMAIL_SUBJECTS:
-    MAIN = "Регистрация в LyPay"
-    GUEST = "Регистрация в LyPay: Гостевой доступ"
-    SHOPKEEPER = "LyPay: приглашение на Благотворительную Ярмарку-2026"
+class EMAIL:
+    class SUBJECTS:
+        MAIN = "Регистрация в LyPay"
+        GUEST = "Регистрация в LyPay: Гостевой доступ"
+        SHOPKEEPER = "LyPay: приглашение на Благотворительную Ярмарку-2026"
+
+    class PATHS:
+        MAIN = PATHS.EMAIL + "main.html"
+        GUEST = PATHS.EMAIL + "guest.html"
+        STORE = PATHS.EMAIL + "store.html"
+        USER_MANUAL = PATHS.EMAIL + "manual placeholder.pdf"
+        STORE_MANUAL = PATHS.EMAIL + "manual placeholder.pdf"
+
+    SENDER = "LyPay Electronics"
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
