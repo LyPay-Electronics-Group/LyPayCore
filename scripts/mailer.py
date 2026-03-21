@@ -13,7 +13,7 @@ def send(path: str, participant: str, subject: str, keys: dict[str, ...] | None 
     """
     Отправляет письмо по электронной почте из конфига с заданными параметрами (синхронно)
 
-    :param path: путь до html-файла с основой письма и текстом
+    :param path: (абсолютный) путь до html-файла с основой письма и текстом
     :param participant: email получателя
     :param subject: тема письма
     :param keys: словарь ключей для замены (по умолчанию не используется)
@@ -52,7 +52,7 @@ async def send_async(*, path: str, participant: str, subject: str, keys: dict[st
     """
     Отправляет письмо по электронной почте из конфига с заданными параметрами (асинхронно)
 
-    :param path: путь до html-файла с основой письма и текстом
+    :param path: (абсолютный) путь до html-файла с основой письма и текстом
     :param participant: email получателя
     :param subject: тема письма
     :param keys: словарь ключей для замены (по умолчанию не используется)
