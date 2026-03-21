@@ -18,11 +18,11 @@ async def info(route: str, ID: str = None):
 
     try:
         search_result = db.search(route, "ID", int(ID))
+        if search_result is None:
+            raise lpsql.exceptions.IDNotFound
+
         return JSONResponse(
-            {
-                'found': search_result is not None,
-                'entry': search_result
-            },
+            {'result': search_result},
             status_code=200
         )
     except Exception as e:
