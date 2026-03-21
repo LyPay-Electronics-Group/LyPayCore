@@ -13,7 +13,7 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 async def info(route: str, ID: str = None):
     if ID is None:
         return parser.form_error_bad_parsing()
-    elif route.lower() not in ('main', 'stores', 'admins'):
+    elif route.lower() not in ('main', 'stores', 'admins', 'high'):
         return parser.form_error(NameError(), "invalid route", 404)
 
     try:
