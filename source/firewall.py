@@ -25,5 +25,7 @@ async def info(route: str, ID: str = None):
             {'result': search_result},
             status_code=200
         )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
