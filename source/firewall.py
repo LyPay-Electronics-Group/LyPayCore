@@ -13,17 +13,19 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 async def info(route: str, ID: str = None):
     if ID is None:
         return parser.form_error_bad_parsing()
-    elif route.lower() not in ('main', 'stores', 'admins'):
+    elif route.lower() not in ('main', 'stores', 'admins', 'high'):
         return parser.form_error(NameError(), "invalid route", 404)
 
     try:
         search_result = db.search(route, "ID", int(ID))
+        if search_result is None:
+            raise lpsql.exceptions.IDNotFound
+
         return JSONResponse(
-            {
-                'found': search_result is not None,
-                'entry': search_result
-            },
+            {'result': search_result},
             status_code=200
         )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

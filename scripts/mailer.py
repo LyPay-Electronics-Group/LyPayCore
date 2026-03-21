@@ -8,13 +8,20 @@ from asyncio import to_thread
 
 from os import getenv
 
+from data.config import EMAIL
 
-def send(path: str, participant: str, subject: str, keys: dict[str, ...] | None = None, files: list[str] | None = None):
+
+def send(*,
+         path: str, sender: str | None = None, recipient: str,
+         subject: str,
+         keys: dict[str, ...] | None = None,
+         files: list[str] | None = None):
     """
     Отправляет письмо по электронной почте из конфига с заданными параметрами (синхронно)
 
-    :param path: путь до html-файла с основой письма и текстом
-    :param participant: email получателя
+    :param path: (абсолютный) путь до html-файла с основой письма и текстом
+    :param sender: подпись отправителя (по умолчанию: config.EMAIL.SENDER
+    :param recipient: email получателя
     :param subject: тема письма
     :param keys: словарь ключей для замены (по умолчанию не используется)
     :param files: список (абсолютных) путей к файлам для отправки в качестве приложенных файлов (по умолчанию не используется)
@@ -27,8 +34,8 @@ def send(path: str, participant: str, subject: str, keys: dict[str, ...] | None 
             text_input = text_input.replace(f'{{:{key}:}}', f'{value}')
     message = MIMEMultipart()
     message["Subject"] = subject
-    message["From"] = "LyPay Electronics"
-    message["To"] = participant
+    message["From"] = sender if sender is not None else EMAIL.SENDER
+    message["To"] = recipient
     message.attach(MIMEText(text_input, 'html'))
 
     if files is not None:
@@ -48,14 +55,23 @@ def send(path: str, participant: str, subject: str, keys: dict[str, ...] | None 
         email.send_message(message)
 
 
-async def send_async(*, path: str, participant: str, subject: str, keys: dict[str, ...] | None = None, files: list[str] | None = None):
+async def send_async(*,
+                     path: str, sender: str | None = None, recipient: str,
+                     subject: str,
+                     keys: dict[str, ...] | None = None,
+                     files: list[str] | None = None):
     """
     Отправляет письмо по электронной почте из конфига с заданными параметрами (асинхронно)
 
-    :param path: путь до html-файла с основой письма и текстом
-    :param participant: email получателя
+    :param path: (абсолютный) путь до html-файла с основой письма и текстом
+    :param sender: подпись отправителя (по умолчанию: config.EMAIL.SENDER
+    :param recipient: email получателя
     :param subject: тема письма
     :param keys: словарь ключей для замены (по умолчанию не используется)
     :param files: список (абсолютных) путей к файлам для отправки в качестве приложенных файлов (по умолчанию не используется)
     """
-    await to_thread(send, path, participant, subject, keys, files)
+    await to_thread(
+        send,
+        path=path, sender=sender, recipient=recipient,
+        subject=subject, keys=keys, files=files
+    )

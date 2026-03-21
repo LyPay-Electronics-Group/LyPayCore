@@ -6,7 +6,7 @@ from jwt import decode as jwt_decode
 from scripts import parser, lpsql, mailer
 from scripts.unix import unix
 from scripts.idgen import IDGenerator
-from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY, EMAIL_SUBJECTS
+from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY, EMAIL
 
 
 router = APIRouter()
@@ -30,8 +30,10 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
             else:
                 keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
             keys["CODE"] = code
-            await mailer.send_async(path=PATHS.EMAIL + "main.html", participant=email,
-                                    subject=EMAIL_SUBJECTS.MAIN, keys=keys)
+            await mailer.send_async(path=EMAIL.PATHS.MAIN, recipient=email,
+                                    subject=EMAIL.SUBJECTS.MAIN, keys=keys,
+                                    files=[EMAIL.PATHS.USER_MANUAL])
+
         elif route == 'guest':
             if keys is None:
                 keys = {
@@ -43,8 +45,9 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
             else:
                 keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
             keys["CODE"] = code
-            await mailer.send_async(path=PATHS.EMAIL + "guest.html", participant=email,
-                                    subject=EMAIL_SUBJECTS.GUEST, keys=keys)
+            await mailer.send_async(path=EMAIL.PATHS.GUEST, recipient=email,
+                                    subject=EMAIL.SUBJECTS.GUEST, keys=keys,
+                                    files=[EMAIL.PATHS.USER_MANUAL])
         else:  # shopkeeper
             link = idgen.generate_code(16)
             if keys is None:
@@ -56,9 +59,9 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
             else:
                 keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
             keys["CODE"] = link
-            await mailer.send_async(path=PATHS.EMAIL + "store.html", participant=email,
-                                    subject=EMAIL_SUBJECTS.SHOPKEEPER, keys=keys,
-                                    files=[PATHS.EMAIL + "LyPay Store Manual.pdf"])
+            await mailer.send_async(path=EMAIL.PATHS.STORE, recipient=email,
+                                    subject=EMAIL.SUBJECTS.SHOPKEEPER, keys=keys,
+                                    files=[EMAIL.PATHS.STORE_MANUAL])
             db.insert(
                 "store_form_link",
                 [
