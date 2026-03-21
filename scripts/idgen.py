@@ -111,3 +111,13 @@ class IDGenerator:
                 _=self.generate_code(IDGEN.CHEQUE_ID_LENGTH)
             )
         return c
+
+    async def lotID(self) -> int:
+        """
+        Создаёт уникальный lotID (с проверкой корректности)
+
+        :return: код
+        """
+
+        all_lots = self.db.searchall("auction", "logID")
+        return max(all_lots) + 1 if len(all_lots) > 0 else 1
