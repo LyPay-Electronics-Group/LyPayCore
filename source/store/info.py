@@ -29,11 +29,22 @@ async def get_basic_info(ID: str = None):
         return parser.form_error(e)
 
 
-@router.get("/all")
+@router.get("/all/stores")
 async def get_all_stores_ids():
     try:
         return JSONResponse(
             {"ids": db.searchall("stores", "ID")},
+            status_code=200
+        )
+    except Exception as e:
+        return parser.form_error(e)
+
+
+@router.get("/all/shopkeepers")
+async def get_all_shopkeepers():
+    try:
+        return JSONResponse(
+            {"ids": db.searchall("shopkeepers", "userID")},
             status_code=200
         )
     except Exception as e:
