@@ -38,13 +38,13 @@ async def get_all_items(storeID: str = None, active_filter: int = None):  # acti
 
     active_filter = bool(active_filter)
     try:
+        if db.search("stores", "storeID", storeID) is None:
+            raise lpsql.exceptions.IDNotFound
+
         search_result = list()
         for item in db.search("items", "storeID", storeID, True):
             if active_filter and item['active']:
                 search_result.append(item)
-
-        if len(search_result) == 0:
-            raise lpsql.exceptions.IDNotFound
 
         return JSONResponse(
             {"result": search_result},
