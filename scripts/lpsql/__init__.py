@@ -7,8 +7,8 @@ from scripts.unix import unix
 
 
 class Tables:
-    MAIN = ['users', 'stores', 'shopkeepers', 'logotypes', 'history', 'changing', 'corporation', 'auction',
-            'arttest_test1', 'arttest_test4', 'promo']
+    MAIN = ['users', 'stores', 'shopkeepers', 'history', 'corporation', 'auction',
+            'promo', 'items', 'store_form_link', 'cheques']
 
     FIREWALL = ['main', 'stores', 'admins']
 
