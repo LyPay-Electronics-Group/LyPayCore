@@ -38,7 +38,7 @@ async def get_all_items(storeID: str = None, active_filter: int = None):  # acti
 
     active_filter = bool(active_filter)
     try:
-        if db.search("stores", "storeID", storeID) is None:
+        if db.search("stores", "ID", storeID) is None:
             raise lpsql.exceptions.IDNotFound
 
         search_result = list()
