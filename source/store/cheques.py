@@ -35,7 +35,7 @@ async def get_cheque(chequeID: str = None):
 
 
 @router.get("/all")
-async def get_all_cheques(storeID: str = None, active_filter: bool = None):
+async def get_all_cheques(storeID: str = None, active_filter: int = None):  # active_filter : bool
     if storeID is None:
         return parser.form_error_bad_parsing()
 
