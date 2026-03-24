@@ -44,11 +44,11 @@ async def confirm_lot(lotID: int = None):
         lot_record = db.search("auction", "lotID", lotID)
         if lot_record is None:
             raise lpsql.exceptions.IDNotFound
-        storeID = db.search("stores", "auctionID", lot_record["auctionId"])["ID"]
+        storeID = db.search("stores", "auctionID", lot_record["auctionID"])["ID"]
 
         db.transfer(storeID, "auction_transfer_route", lot_record["price"])
         # TODO: НУЖНА ПРОВЕРКА НА ЕДИНИЧНОСТЬ, чтобы исключить редактирование неверной записи (.update берёт первое совпадение)
-        db.update("auction", "logID", lotID, "confirmed", 1)
+        db.update("auction", "lotID", lotID, "confirmed", 1)
 
         return JSONResponse(
             {"ok": True},
