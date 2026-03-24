@@ -46,7 +46,7 @@ async def access_add(storeID: str = None, userID: int = None):
             raise lpsql.exceptions.IDNotFound
 
         if db.search("shopkeepers", "userID", userID) is not None:
-            return parser.form_error(ValueError(), "user already is a shopkeeper", 403)
+            return parser.form_error(PermissionError(), "user is already a shopkeeper", 403)
 
         db.insert(
             "shopkeepers",
