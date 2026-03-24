@@ -32,19 +32,19 @@ async def get_item(itemID: str = None):
 
 
 @router.get("/all")
-async def get_all_items(storeID: str = None, active_filter: bool = None):
+async def get_all_items(storeID: str = None, active_filter: int = None):  # active_filter : bool
     if storeID is None:
         return parser.form_error_bad_parsing()
 
-    active_filter = bool(active_filter)
+    inactive_filter = not bool(active_filter)
     try:
+        if db.search("stores", "ID", storeID) is None:
+            raise lpsql.exceptions.IDNotFound
+
         search_result = list()
         for item in db.search("items", "storeID", storeID, True):
-            if active_filter and item['active']:
-                search_result.append(item)
-
-        if len(search_result) == 0:
-            raise lpsql.exceptions.IDNotFound
+            if item['active'] or inactive_filter:
+                search_result.append(item["itemID"])
 
         return JSONResponse(
             {"result": search_result},

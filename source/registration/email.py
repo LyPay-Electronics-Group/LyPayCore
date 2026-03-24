@@ -16,11 +16,13 @@ idgen = IDGenerator(db)
 
 @router.get("/send")
 async def send(email: str = None, route: str = None, code: str = None, keys: str = None):
-    if any(t is None for t in (email, route, code)) or route not in ('main', 'guest', 'store'):
+    if any(t is None for t in (email, route)) or route not in ('main', 'guest', 'shopkeeper'):
         return parser.form_error_bad_parsing()
 
     try:
         if route == 'main':
+            if code is None:
+                return parser.form_error_bad_parsing()
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
@@ -28,13 +30,15 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                     "NAME": f' ({NAME})' if NAME != '' else ''
                 }
             else:
-                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
+                keys = jwt_decode(keys, JWT_KEY, ["HS256"])
             keys["CODE"] = code
             await mailer.send_async(path=EMAIL.PATHS.MAIN, recipient=email,
                                     subject=EMAIL.SUBJECTS.MAIN, keys=keys,
                                     files=[EMAIL.PATHS.USER_MANUAL])
 
         elif route == 'guest':
+            if code is None:
+                return parser.form_error_bad_parsing()
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
@@ -43,7 +47,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                     "UX": unix()
                 }
             else:
-                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
+                keys = jwt_decode(keys, JWT_KEY, ["HS256"])
             keys["CODE"] = code
             await mailer.send_async(path=EMAIL.PATHS.GUEST, recipient=email,
                                     subject=EMAIL.SUBJECTS.GUEST, keys=keys,
@@ -57,7 +61,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                     "NAME": f' ({NAME})' if NAME != '' else ''
                 }
             else:
-                keys = jwt_decode(keys, JWT_KEY, algorithm="HS256")
+                keys = jwt_decode(keys, JWT_KEY, ["HS256"])
             keys["CODE"] = link
             await mailer.send_async(path=EMAIL.PATHS.STORE, recipient=email,
                                     subject=EMAIL.SUBJECTS.SHOPKEEPER, keys=keys,

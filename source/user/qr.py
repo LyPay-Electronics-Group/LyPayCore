@@ -28,7 +28,7 @@ async def check(ID: str = None, unix: str = None):
 
 
 @router.get("/get")
-async def get(ID: str = None):
+async def get(ID: int = None):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -39,7 +39,7 @@ async def get(ID: str = None):
                 path,
                 status_code=200
             )
-        memory.qr(int(ID))
+        memory.qr(ID)
         return FileResponse(
             path,
             status_code=201

@@ -119,5 +119,5 @@ class IDGenerator:
         :return: код
         """
 
-        all_lots = self.db.searchall("auction", "logID")
+        all_lots = self.db.searchall("auction", "lotID")
         return max(all_lots) + 1 if len(all_lots) > 0 else 1

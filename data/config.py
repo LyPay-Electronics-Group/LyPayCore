@@ -36,8 +36,8 @@ class IDGEN:
 
     USER_ID = "{_}"
     STORE_ID = "{_}"
-    ITEM_ID = "{storeID}_{_}"
-    CHEQUE_ID = "{storeID}_{_}"
+    ITEM_ID = "i{storeID}_{_}"
+    CHEQUE_ID = "c{storeID}_{_}"
 
 
 class EMAIL:
@@ -60,6 +60,6 @@ JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintol
 CHUNK_SIZE = 1024
 
 
-VERSION = "test-1"
-NAME = ""
-BUILD = 13
+VERSION = "v2.4c"
+NAME = "API Release"
+BUILD = 14

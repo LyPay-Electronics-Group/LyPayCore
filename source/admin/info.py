@@ -63,6 +63,6 @@ async def get_db_info(db_type: str = None, query: str = None):
             status_code=200
         )
     except lpsql.exceptions.EntryNotFound as e:
-        return parser.form_error(e, "db returned nothing", 404)
+        return parser.form_error(e, "db returned a void", 404)
     except Exception as e:
         return parser.form_error(e)
