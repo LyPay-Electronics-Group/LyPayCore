@@ -68,7 +68,7 @@ async def create_cheque(storeID: str = None, customer: int = None, items: str = 
         if storeID not in db.searchall("stores", "ID"):
             raise lpsql.exceptions.IDNotFound
 
-        parsed_items = jwt_decode(items, cfg.JWT_KEY, algorithm="HS256")
+        parsed_items = jwt_decode(items, cfg.JWT_KEY, ["HS256"])
         chequeID = await idgen.chequeID(storeID)
 
         db.insert("cheques", [
