@@ -70,6 +70,7 @@ async def new_store(name: str = None, storeID: str = None, hostID: int = None, e
         return parser.form_error(AttributeError(), "bad censor flag: desc", 406)
 
     try:
+        db.manual(f"DELETE FROM store_form_link WHERE link like \"{link}\"")
         db.insert(
             "stores",
             [
@@ -91,7 +92,6 @@ async def new_store(name: str = None, storeID: str = None, hostID: int = None, e
                 storeID  # storeID
             ]
         )
-        db.manual(f"DELETE * FROM store_form_link WHERE link={link}")
         firewall4.insert(
             "stores",
             [
