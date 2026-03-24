@@ -9,4 +9,4 @@ router = APIRouter()
 
 router.include_router(balance_router)
 router.include_router(info_router)
-router.include_router(qr_router)
+router.include_router(qr_router, prefix="/qr")
