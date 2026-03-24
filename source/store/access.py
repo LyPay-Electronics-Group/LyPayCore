@@ -45,6 +45,9 @@ async def access_add(storeID: str = None, userID: int = None):
         if db.search("users", "ID", userID) is None:
             raise lpsql.exceptions.IDNotFound
 
+        if db.search("shopkeepers", "userID", userID) is not None:
+            return parser.form_error(ValueError(), "user already is a shopkeeper", 403)
+
         db.insert(
             "shopkeepers",
             [userID, storeID]
@@ -79,8 +82,8 @@ async def remove_access(storeID: str = None, userID: int = None):
         if db.search("users", "ID", userID) is None:
             raise lpsql.exceptions.IDNotFound
 
-        db.manual(f"delete * from shopkeepers where userID={userID}")
-        firewall4.manual(f"delete * from stores where ID={userID}")
+        db.manual(f"delete from shopkeepers where userID={userID}")
+        firewall4.manual(f"delete from stores where ID={userID}")
         return JSONResponse(
             {"ok": True},
             status_code=200
