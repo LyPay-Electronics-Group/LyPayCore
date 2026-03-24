@@ -36,8 +36,8 @@ class IDGEN:
 
     USER_ID = "{_}"
     STORE_ID = "{_}"
-    ITEM_ID = "{storeID}_{_}"
-    CHEQUE_ID = "{storeID}_{_}"
+    ITEM_ID = "i{storeID}_{_}"
+    CHEQUE_ID = "c{storeID}_{_}"
 
 
 class EMAIL:
