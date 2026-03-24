@@ -44,7 +44,7 @@ async def get_all_items(storeID: str = None, active_filter: int = None):  # acti
         search_result = list()
         for item in db.search("items", "storeID", storeID, True):
             if item['active'] or inactive_filter:
-                search_result.append(item)
+                search_result.append(item["itemID"])
 
         return JSONResponse(
             {"result": search_result},

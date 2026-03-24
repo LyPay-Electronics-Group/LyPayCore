@@ -47,7 +47,7 @@ async def get_all_cheques(storeID: str = None, active_filter: int = None):  # ac
         search_result = list()
         for item in db.search("cheques", "storeID", storeID, True):
             if item['active'] or inactive_filter:
-                search_result.append(item)
+                search_result.append(item["chequeID"])
 
         return JSONResponse(
             {"result": search_result},
