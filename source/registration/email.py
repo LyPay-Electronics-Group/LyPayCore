@@ -16,11 +16,13 @@ idgen = IDGenerator(db)
 
 @router.get("/send")
 async def send(email: str = None, route: str = None, code: str = None, keys: str = None):
-    if any(t is None for t in (email, route, code)) or route not in ('main', 'guest', 'store'):
+    if any(t is None for t in (email, route)) or route not in ('main', 'guest', 'shopkeeper'):
         return parser.form_error_bad_parsing()
 
     try:
         if route == 'main':
+            if code is None:
+                return parser.form_error_bad_parsing()
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
@@ -35,6 +37,8 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                                     files=[EMAIL.PATHS.USER_MANUAL])
 
         elif route == 'guest':
+            if code is None:
+                return parser.form_error_bad_parsing()
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
