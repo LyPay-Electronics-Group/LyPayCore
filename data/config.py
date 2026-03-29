@@ -60,6 +60,6 @@ JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintol
 CHUNK_SIZE = 1024
 
 
-VERSION = "v2.4c"
+VERSION = "v2.4.1c"
 NAME = "API Release"
-BUILD = 14
+BUILD = 15

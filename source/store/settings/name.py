@@ -29,8 +29,8 @@ async def get_name(ID: str = None):
         return parser.form_error(e)
 
 
-@router.get("/set")
-async def set_name(ID: str = None, new: str = None):
+@router.get("/upd")
+async def update_name(ID: str = None, new: str = None):
     if ID is None or new is None:
         return parser.form_error_bad_parsing()
 

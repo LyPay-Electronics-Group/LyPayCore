@@ -29,8 +29,8 @@ async def get_description(ID: str = None):
         return parser.form_error(e)
 
 
-@router.get("/set")
-async def set_description(ID: str = None, new: str = None):
+@router.get("/upd")
+async def update_description(ID: str = None, new: str = None):
     if ID is None:
         return parser.form_error_bad_parsing()
     if new is None:

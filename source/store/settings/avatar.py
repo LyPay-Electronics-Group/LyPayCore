@@ -50,26 +50,23 @@ async def get_avatar(ID: str = None, unix: float = None):
         return parser.form_error(e)
 
 
-@router.post("/set")
-async def set_avatar(avatar: UploadFile, ID: str = None):
+@router.post("/upd")
+async def update_avatar(avatar: UploadFile, ID: str = None):
     if ID is None:
         return parser.form_error_bad_parsing()
 
     try:
         store = db.search("stores", "ID", ID)
-        if store is not None:
-            has_icon = store["logo"]
-        else:
+        if store is None:
             raise lpsql.exceptions.IDNotFound()
 
-        if not bool(has_icon):
-            db.update("stores", "ID", ID, "logo", True)
+        db.update("stores", "ID", ID, "logo", True)
 
-            await memory.save_iterative(avatar, cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
-            return JSONResponse(
-                {"ok": True},
-                status_code=200
-            )
+        await memory.save_iterative(avatar, cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
+        return JSONResponse(
+            {"ok": True},
+            status_code=200
+        )
     except lpsql.exceptions.IDNotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
