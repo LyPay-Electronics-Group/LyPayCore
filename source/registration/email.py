@@ -53,7 +53,8 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                                     subject=EMAIL.SUBJECTS.GUEST, keys=keys,
                                     files=[EMAIL.PATHS.USER_MANUAL])
         else:  # shopkeeper
-            link = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
+            if code is None:
+                code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
@@ -62,16 +63,13 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                 }
             else:
                 keys = jwt_decode(keys, JWT_KEY, ["HS256"])
-            keys["CODE"] = link
+            keys["CODE"] = code
             await mailer.send_async(path=EMAIL.PATHS.STORE, recipient=email,
                                     subject=EMAIL.SUBJECTS.SHOPKEEPER, keys=keys,
                                     files=[EMAIL.PATHS.STORE_MANUAL])
             db.insert(
                 "store_form_link",
-                [
-                    link,
-                    email
-                ]
+                [code, email]
             )
         return JSONResponse(
             {'ok': True},
