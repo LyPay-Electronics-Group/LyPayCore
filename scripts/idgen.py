@@ -15,16 +15,19 @@ class IDGenerator:
         self.db = database
 
         self.alphabet = tuple("0123456789abcdefghijklmnopqrstuvwxyz")
+        self.store_id_alphabet = tuple("0123456789abcdef")
 
-    def generate_code(self, length: int) -> str:
+    @staticmethod
+    def generate_code(length: int, alphabet: tuple[str]) -> str:
         """
         Создаёт цифро-буквенный код, состоящий из символов ``0-9`` и ``a-z``
 
         :param length: необходимая длина кода
+        :param alphabet: алфавит кода
         :return: код (строка)
         """
 
-        return ''.join(r_choice(self.alphabet) for _ in range(length))
+        return ''.join(r_choice(alphabet) for _ in range(length))
 
     @staticmethod
     def generate_id(length: int) -> int:
@@ -63,12 +66,12 @@ class IDGenerator:
         """
 
         s = IDGEN.STORE_ID.format(
-            _=self.generate_code(IDGEN.STORE_ID_LENGTH)
+            _=self.generate_code(IDGEN.STORE_ID_LENGTH, self.store_id_alphabet)
         )
         while s in self.db.searchall("stores", "ID"):
             await sleep(IDGEN.TIMEOUT)
             s = IDGEN.STORE_ID.format(
-                _=self.generate_code(IDGEN.STORE_ID_LENGTH)
+                _=self.generate_code(IDGEN.STORE_ID_LENGTH, self.store_id_alphabet)
             )
         return s
 
@@ -82,13 +85,13 @@ class IDGenerator:
 
         i = IDGEN.ITEM_ID.format(
             storeID=storeID,
-            _=self.generate_code(IDGEN.ITEM_ID_LENGTH)
+            _=self.generate_code(IDGEN.ITEM_ID_LENGTH, self.alphabet)
         )
         while i in self.db.searchall("items", "itemID"):
             await sleep(IDGEN.TIMEOUT)
             i = IDGEN.ITEM_ID.format(
                 storeID=storeID,
-                _=self.generate_code(IDGEN.ITEM_ID_LENGTH)
+                _=self.generate_code(IDGEN.ITEM_ID_LENGTH, self.alphabet)
             )
         return i
 
@@ -102,13 +105,13 @@ class IDGenerator:
 
         c = IDGEN.CHEQUE_ID.format(
             storeID=storeID,
-            _=self.generate_code(IDGEN.CHEQUE_ID_LENGTH)
+            _=self.generate_code(IDGEN.CHEQUE_ID_LENGTH, self.alphabet)
         )
         while c in self.db.searchall("cheques", "chequeID"):
             await sleep(IDGEN.TIMEOUT)
             c = IDGEN.CHEQUE_ID.format(
                 storeID=storeID,
-                _=self.generate_code(IDGEN.CHEQUE_ID_LENGTH)
+                _=self.generate_code(IDGEN.CHEQUE_ID_LENGTH, self.alphabet)
             )
         return c
 
