@@ -53,6 +53,7 @@ class EMAIL:
         USER_MANUAL = PATHS.EMAIL + "manual placeholder.pdf"
         STORE_MANUAL = PATHS.EMAIL + "manual placeholder.pdf"
 
+    ACCESS_CODE_LENGTH = 24
     SENDER = "LyPay Electronics"
 
 
@@ -60,6 +61,6 @@ JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintol
 CHUNK_SIZE = 1024
 
 
-VERSION = "v2.4.1c"
+VERSION = "v2.4.2c"
 NAME = "API Release"
-BUILD = 15
+BUILD = 16
