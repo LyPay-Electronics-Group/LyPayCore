@@ -22,7 +22,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
     try:
         if route == 'main':
             if code is None:
-                return parser.form_error_bad_parsing()
+                code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
@@ -38,7 +38,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
 
         elif route == 'guest':
             if code is None:
-                return parser.form_error_bad_parsing()
+                code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
             if keys is None:
                 keys = {
                     "VERSION": VERSION,
@@ -53,7 +53,7 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
                                     subject=EMAIL.SUBJECTS.GUEST, keys=keys,
                                     files=[EMAIL.PATHS.USER_MANUAL])
         else:  # shopkeeper
-            link = idgen.generate_code(16)
+            link = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
             if keys is None:
                 keys = {
                     "VERSION": VERSION,

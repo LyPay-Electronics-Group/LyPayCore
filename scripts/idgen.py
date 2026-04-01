@@ -20,7 +20,7 @@ class IDGenerator:
     @staticmethod
     def generate_code(length: int, alphabet: tuple[str]) -> str:
         """
-        Создаёт цифро-буквенный код, состоящий из символов ``0-9`` и ``a-z``
+        Создаёт цифро-буквенный код
 
         :param length: необходимая длина кода
         :param alphabet: алфавит кода
@@ -28,6 +28,16 @@ class IDGenerator:
         """
 
         return ''.join(r_choice(alphabet) for _ in range(length))
+
+    def generate_code_default(self, length: int) -> str:
+        """
+        Создаёт цифро-буквенный код, остоящий из символов ``0-9`` и ``a-z``
+
+        :param length: необходимая длина кода
+        :return: код (строка)
+        """
+
+        return self.generate_code(length, self.alphabet)
 
     @staticmethod
     def generate_id(length: int) -> int:

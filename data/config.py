@@ -53,6 +53,7 @@ class EMAIL:
         USER_MANUAL = PATHS.EMAIL + "manual placeholder.pdf"
         STORE_MANUAL = PATHS.EMAIL + "manual placeholder.pdf"
 
+    ACCESS_CODE_LENGTH = 24
     SENDER = "LyPay Electronics"
 
 
