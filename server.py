@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from typing import Callable, Awaitable
 
 from source.firewall import router as firewall_router
 from source.registration import router as registration_router
@@ -7,6 +8,8 @@ from source.store import router as store_router
 from source.admin import router as admin_router
 from source.auction import router as auction_router
 from source.promo import router as promo_router
+
+from data.config import IP_BLACKLIST
 
 
 app = FastAPI()
@@ -18,6 +21,24 @@ app.include_router(store_router, prefix="/store")
 app.include_router(admin_router, prefix="/admin")
 app.include_router(auction_router, prefix="/auc")
 app.include_router(promo_router, prefix="/promo")
+
+
+@app.middleware("http")
+async def IP_censor(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+    """
+    Проверяет IP отправителя реквеста на всём http поле
+
+    :param request: исходные данные реквеста
+    :param call_next: следующий миддлвэри-фильтр или целевая функция
+    :return: ответ call_next
+    """
+
+    ip = request.client.host
+
+    if ip in IP_BLACKLIST:
+        return Response(status_code=402)
+
+    return await call_next(request)
 
 
 @app.get("/")
