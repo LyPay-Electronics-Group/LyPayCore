@@ -58,6 +58,7 @@ class EMAIL:
 
 
 IP_BLACKLIST = {"1.1.1.1"}
+BLACKLIST_UPDATE_TIME = 10
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
