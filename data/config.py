@@ -57,6 +57,9 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
+IP_BLACKLIST = {"1.1.1.1"}
+
+
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
 CHUNK_SIZE = 1024
 
