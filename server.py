@@ -27,7 +27,7 @@ app.include_router(auction_router, prefix="/auc")
 app.include_router(promo_router, prefix="/promo")
 
 
-IP_BLACKLIST_update_target = unix_raw() + 2 * cfg.BLACKLIST_UPDATE_TIME
+IP_CENSOR_update_target = unix_raw() + 2 * cfg.IP_CENSOR_UPDATE_TIME
 
 @app.middleware("http")
 async def IP_censor(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
@@ -38,13 +38,13 @@ async def IP_censor(request: Request, call_next: Callable[[Request], Awaitable[R
     :param call_next: следующий миддлвэри-фильтр или целевая функция
     :return: ответ call_next
     """
-    global IP_BLACKLIST_update_target
+    global IP_CENSOR_update_target
 
-    if unix_raw() >= IP_BLACKLIST_update_target:
-        IP_BLACKLIST_update_target = unix_raw() + cfg.BLACKLIST_UPDATE_TIME
+    if unix_raw() >= IP_CENSOR_update_target:
+        IP_CENSOR_update_target = unix_raw() + cfg.IP_CENSOR_UPDATE_TIME
         reload(cfg)
 
-    if request.client.host in cfg.IP_BLACKLIST:
+    if request.client.host not in cfg.IP_WHITELIST:
         return Response(status_code=402)
 
     return await call_next(request)

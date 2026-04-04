@@ -60,8 +60,8 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
-IP_BLACKLIST = {"1.1.1.1"}
-BLACKLIST_UPDATE_TIME = 10
+IP_WHITELIST = {"127.0.0.1"}
+IP_CENSOR_UPDATE_TIME = 10
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
