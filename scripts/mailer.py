@@ -6,6 +6,8 @@ from email.encoders import encode_base64 as encode_attachment
 
 from asyncio import to_thread
 
+from datetime import datetime
+
 from os import getenv
 
 from data.config import EMAIL
@@ -33,7 +35,7 @@ def send(*,
         for key, value in keys.items():
             text_input = text_input.replace(f'{{:{key}:}}', f'{value}')
     message = MIMEMultipart()
-    message["Subject"] = subject
+    message["Subject"] = subject.format(year=datetime.now().year)
     message["From"] = sender if sender is not None else EMAIL.SENDER
     message["To"] = recipient
     message.attach(MIMEText(text_input, 'html'))

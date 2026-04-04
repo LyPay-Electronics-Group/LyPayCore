@@ -46,8 +46,8 @@ class IDGEN:
 class EMAIL:
     class SUBJECTS:
         MAIN = "Регистрация в LyPay"
-        GUEST = "Регистрация в LyPay: Гостевой доступ"
-        SHOPKEEPER = "LyPay: приглашение на Благотворительную Ярмарку-2026"
+        GUEST = "Регистрация в LyPay: гостевой доступ"
+        SHOPKEEPER = "LyPay: приглашение на Благотворительную Ярмарку-{year}"
 
     class PATHS:
         MAIN = PATHS.EMAIL + "main.html"
