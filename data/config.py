@@ -7,10 +7,13 @@ class PATHS:
     QR = DATA + 'QR/'
 
     STORES = DATA + 'stores/'
+    USERS = DATA + 'users/'
     EMAIL = DATA + 'email/'
 
     STORES_ITEMS = STORES + 'items/'
     STORES_AVATARS = STORES + 'avatars/'
+
+    USERS_AVATARS = USERS + 'avatars/'
 
     LAUNCH_SETTINGS = DATA + 'settings.json'
 
