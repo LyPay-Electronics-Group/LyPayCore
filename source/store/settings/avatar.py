@@ -21,7 +21,7 @@ async def get_avatar(ID: str = None, unix: float = None):
         path = cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"
         store = db.search("stores", "ID", ID)
         if store is not None:
-            has_icon = store["logo"]
+            has_icon = store["avatar"]
         else:
             raise lpsql.exceptions.IDNotFound()
 
@@ -60,7 +60,7 @@ async def update_avatar(avatar: UploadFile, ID: str = None):
         if store is None:
             raise lpsql.exceptions.IDNotFound()
 
-        db.update("stores", "ID", ID, "logo", True)
+        db.update("stores", "ID", ID, "avatar", True)
 
         await memory.save_iterative(avatar, cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
         return JSONResponse(
@@ -86,7 +86,7 @@ async def remove_avatar(ID: str = None):
         if exists(path):
             remove(path)
 
-        db.update("stores", "ID", ID, "logo", False)
+        db.update("stores", "ID", ID, "avatar", False)
         return JSONResponse(
             {"ok": True},
             status_code=200
