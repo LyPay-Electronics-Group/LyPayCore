@@ -32,12 +32,12 @@ class CENSOR:
 class IDGEN:
     TIMEOUT = .01
 
-    USER_ID_LENGTH = 9
+    USER_ID_LENGTH = 8
     STORE_ID_LENGTH = 3
     ITEM_ID_LENGTH = 7
     CHEQUE_ID_LENGTH = 6
 
-    USER_ID = "{_}"
+    USER_ID = "{year}{_}"
     STORE_ID = "{_}"
     ITEM_ID = "i{storeID}_{_}"
     CHEQUE_ID = "c{storeID}_{_}"
