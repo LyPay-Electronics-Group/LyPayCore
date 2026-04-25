@@ -19,8 +19,11 @@ async def get_basic_info(ID: int = None, email: str = None):
             result = db.search("users", "ID", ID)
         else:
             result = db.search("users", "email", email)
+
         if result is None:
             raise lpsql.exceptions.IDNotFound()
+
+        result["group"] = result.pop("class")
         return JSONResponse(
             result,
             status_code=200
