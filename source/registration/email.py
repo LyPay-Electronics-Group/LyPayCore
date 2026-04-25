@@ -86,8 +86,11 @@ async def check_corporation_record(email: str = None):
 
     try:
         result = db.search("corporation", "email", email)
+
         if result is None:
             raise lpsql.exceptions.EmailNotFound
+
+        result["group"] = result.pop("class")
         return JSONResponse(
             result,
             status_code=200
