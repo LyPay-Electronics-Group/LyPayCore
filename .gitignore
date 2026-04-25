@@ -8,4 +8,5 @@
 /data/firewall/
 /data/QR/
 /data/stores/
+/data/users/
 /data/*.db*

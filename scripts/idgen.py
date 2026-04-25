@@ -1,6 +1,8 @@
 from random import choice as r_choice, randint as r_rand
 from asyncio import sleep
 
+from datetime import datetime
+
 from data.config import IDGEN
 from scripts.lpsql import DataBase
 
@@ -59,12 +61,14 @@ class IDGenerator:
         """
 
         u = int(IDGEN.USER_ID.format(
-            _=self.generate_id(IDGEN.USER_ID_LENGTH)
+            _=self.generate_id(IDGEN.USER_ID_LENGTH - 1),
+            year=datetime.now().year % 10
         ))
         while u in self.db.searchall("users", "ID"):
             await sleep(IDGEN.TIMEOUT)
             u = int(IDGEN.USER_ID.format(
-                _=self.generate_id(IDGEN.USER_ID_LENGTH)
+                _=self.generate_id(IDGEN.USER_ID_LENGTH - 1),
+                year=datetime.now().year % 10
             ))
         return u
 

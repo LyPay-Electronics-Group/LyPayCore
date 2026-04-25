@@ -7,10 +7,13 @@ class PATHS:
     QR = DATA + 'QR/'
 
     STORES = DATA + 'stores/'
+    USERS = DATA + 'users/'
     EMAIL = DATA + 'email/'
 
     STORES_ITEMS = STORES + 'items/'
     STORES_AVATARS = STORES + 'avatars/'
+
+    USERS_AVATARS = USERS + 'avatars/'
 
     LAUNCH_SETTINGS = DATA + 'settings.json'
 
@@ -29,12 +32,12 @@ class CENSOR:
 class IDGEN:
     TIMEOUT = .01
 
-    USER_ID_LENGTH = 9
+    USER_ID_LENGTH = 8
     STORE_ID_LENGTH = 3
     ITEM_ID_LENGTH = 7
     CHEQUE_ID_LENGTH = 6
 
-    USER_ID = "{_}"
+    USER_ID = "{year}{_}"
     STORE_ID = "{_}"
     ITEM_ID = "i{storeID}_{_}"
     CHEQUE_ID = "c{storeID}_{_}"
@@ -43,8 +46,8 @@ class IDGEN:
 class EMAIL:
     class SUBJECTS:
         MAIN = "Регистрация в LyPay"
-        GUEST = "Регистрация в LyPay: Гостевой доступ"
-        SHOPKEEPER = "LyPay: приглашение на Благотворительную Ярмарку-2026"
+        GUEST = "Регистрация в LyPay: гостевой доступ"
+        SHOPKEEPER = "LyPay: приглашение на Благотворительную Ярмарку-{year}"
 
     class PATHS:
         MAIN = PATHS.EMAIL + "main.html"
@@ -57,10 +60,14 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
+IP_WHITELIST = {"127.0.0.1"}
+IP_CENSOR_UPDATE_TIME = 10
+
+
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
 CHUNK_SIZE = 1024
 
 
-VERSION = "v2.4.2c"
-NAME = "API Release"
-BUILD = 16
+VERSION = "v2.5c"
+NAME = "API Update 1"
+BUILD = 17
