@@ -53,7 +53,7 @@ async def check_code(code: str = None):
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("user_access_codes", "code", code)
+        search_result = db.search("access_codes_main", "code", code)
         if search_result is None:
             raise lpsql.exceptions.EmailNotFound
 
