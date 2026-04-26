@@ -10,15 +10,17 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/get")
-async def get_basic_info(ID: int = None, email: str = None):
-    if ID is None and email is None:
+async def get_basic_info(ID: int = None, email: str = None, login: str = None):
+    if ID is None and email is None and login is None:
         return parser.form_error_bad_parsing()
 
     try:
         if ID is not None:
             result = db.search("users", "ID", ID)
-        else:
+        elif email is not None:
             result = db.search("users", "email", email)
+        else:
+            result = db.search("users", "login", login)
 
         if result is None:
             raise lpsql.exceptions.IDNotFound()
