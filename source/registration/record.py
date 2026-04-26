@@ -30,6 +30,11 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
         return parser.form_error(AttributeError(), "bad censor flag: login", 406)
 
     try:
+        if owner_flag[-5:] == 'owner':
+            db.manual(f"DELETE FROM access_codes_main WHERE email like \"{email}\"")
+        else:  # guest
+            db.manual(f"DELETE FROM access_codes_guest WHERE email like \"{email}\"")
+
         ID = await idgen.userID()
 
         db.insert(
@@ -58,8 +63,8 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
 
 
 @router.get("/store")
-async def new_store(name: str = None, storeID: str = None, hostID: int = None, email: str = None, description: str = None, link: str = None):
-    if any(t is None for t in (name, storeID, hostID, email, link)):
+async def new_store(name: str = None, storeID: str = None, hostID: int = None, email: str = None, description: str = None):
+    if any(t is None for t in (name, storeID, hostID, email)):
         return parser.form_error_bad_parsing()
     if description is None:
         description = ""
@@ -70,7 +75,8 @@ async def new_store(name: str = None, storeID: str = None, hostID: int = None, e
         return parser.form_error(AttributeError(), "bad censor flag: desc", 406)
 
     try:
-        db.manual(f"DELETE FROM store_form_link WHERE link like \"{link}\"")
+        db.manual(f"DELETE FROM store_form_link WHERE email like \"{email}\"")
+
         db.insert(
             "stores",
             [

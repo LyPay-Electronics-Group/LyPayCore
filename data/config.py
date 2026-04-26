@@ -60,7 +60,7 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
-IP_WHITELIST = {"127.0.0.1"}
+IP_WHITELIST = {"127.0.0.1", "::1"}
 IP_CENSOR_UPDATE_TIME = 10
 
 
@@ -70,4 +70,4 @@ CHUNK_SIZE = 1024
 
 VERSION = "v2.5c"
 NAME = "API Update 1"
-BUILD = 18
+BUILD = 19

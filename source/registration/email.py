@@ -32,9 +32,16 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
             else:
                 keys = jwt_decode(keys, JWT_KEY, ["HS256"])
             keys["CODE"] = code
+
             await mailer.send_async(path=EMAIL.PATHS.MAIN, recipient=email,
                                     subject=EMAIL.SUBJECTS.MAIN, keys=keys,
                                     files=[EMAIL.PATHS.USER_MANUAL])
+
+            db.manual(f"DELETE FROM access_codes_main WHERE email like \"{email}\"")
+            db.insert(
+                "access_codes_main",
+                [code, email]
+            )
 
         elif route == 'guest':
             if code is None:
@@ -49,9 +56,17 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
             else:
                 keys = jwt_decode(keys, JWT_KEY, ["HS256"])
             keys["CODE"] = code
+
             await mailer.send_async(path=EMAIL.PATHS.GUEST, recipient=email,
                                     subject=EMAIL.SUBJECTS.GUEST, keys=keys,
                                     files=[EMAIL.PATHS.USER_MANUAL])
+
+            db.manual(f"DELETE FROM access_codes_guest WHERE email like \"{email}\"")
+            db.insert(
+                "access_codes_guest",
+                [code, email]
+            )
+
         else:  # shopkeeper
             if code is None:
                 code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
@@ -64,13 +79,16 @@ async def send(email: str = None, route: str = None, code: str = None, keys: str
             else:
                 keys = jwt_decode(keys, JWT_KEY, ["HS256"])
             keys["CODE"] = code
+
             await mailer.send_async(path=EMAIL.PATHS.STORE, recipient=email,
                                     subject=EMAIL.SUBJECTS.SHOPKEEPER, keys=keys,
                                     files=[EMAIL.PATHS.STORE_MANUAL])
+
             db.insert(
                 "store_form_link",
                 [code, email]
             )
+
         return JSONResponse(
             {'ok': True},
             status_code=200
