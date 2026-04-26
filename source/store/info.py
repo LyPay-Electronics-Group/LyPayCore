@@ -59,13 +59,13 @@ async def check_link(link: str = None):
     try:
         search_result = db.search("store_form_link", "link", link)
         if search_result is None:
-            raise lpsql.exceptions.IDNotFound
+            raise lpsql.exceptions.EmailNotFound
 
         return JSONResponse(
             {"email": search_result["email"]},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
-        return parser.form_error(e, "link not found", 404)
+    except lpsql.exceptions.EmailNotFound as e:
+        return parser.form_error(e, "email not found", 404)
     except Exception as e:
         return parser.form_error(e)
