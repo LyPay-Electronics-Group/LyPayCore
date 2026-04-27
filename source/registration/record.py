@@ -50,7 +50,7 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
                 0,          # balance
                 owner_flag, # owner :  '[tg/web]_owner' | '[tg/web]_guest' | 'integration'
                 unix(),     # last_online
-                False
+                False       # avatar
             ]
         )
         if not exists(PATHS.QR + f"{ID}.png"):
