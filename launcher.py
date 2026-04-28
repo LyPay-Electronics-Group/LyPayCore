@@ -1,5 +1,10 @@
 from uvicorn import run
 from server import app
 
+from dotenv import load_dotenv
+from os import getenv
 
-run(app, host='localhost', port=8128)
+load_dotenv()
+
+
+run(app, host=getenv("LYPAY_HOST"), port=int(getenv("LYPAY_PORT")))
