@@ -7,12 +7,15 @@ from hashlib import sha256
 load_dotenv()
 
 
-def code(data: str) -> str:
+def code(data: int | str) -> str:
     """
     Функция хэширования строки с ключом
     :param data: исходная строка
     :return: хэш-код
     """
+
+    if type(data) is int:
+        data = str(data)
 
     data = data.encode("utf8")
     key = getenv("LYPAY_HASH_KEY").encode("utf8")
