@@ -13,7 +13,7 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/get")
-async def get_avatar(ID: str = None, unix: float = None):
+async def get_avatar(ID: int = None, unix: float = None):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -51,7 +51,7 @@ async def get_avatar(ID: str = None, unix: float = None):
 
 
 @router.post("/upd")
-async def update_avatar(avatar: UploadFile, ID: str = None):
+async def update_avatar(avatar: UploadFile, ID: int = None):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -74,7 +74,7 @@ async def update_avatar(avatar: UploadFile, ID: str = None):
 
 
 @router.get("/remove")
-async def remove_avatar(ID: str = None):
+async def remove_avatar(ID: int = None):
     if ID is None:
         return parser.form_error_bad_parsing()
 
