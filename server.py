@@ -13,6 +13,8 @@ from source.admin import router as admin_router
 from source.auction import router as auction_router
 from source.promo import router as promo_router
 
+from source.mst import router as mst_router
+
 from data import config as cfg
 
 
@@ -25,6 +27,8 @@ app.include_router(store_router, prefix="/store")
 app.include_router(admin_router, prefix="/admin")
 app.include_router(auction_router, prefix="/auc")
 app.include_router(promo_router, prefix="/promo")
+
+app.include_router(mst_router, prefix="/mst")
 
 
 IP_CENSOR_update_target = unix_raw() + 2 * cfg.IP_CENSOR_UPDATE_TIME
