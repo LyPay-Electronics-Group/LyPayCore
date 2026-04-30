@@ -68,6 +68,6 @@ JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintol
 CHUNK_SIZE = 1024
 
 
-VERSION = "v2.5c-mst"
-NAME = "MST"
-BUILD = 21.1
+VERSION = "v2.5c"
+NAME = "FullStack"
+BUILD = 22
