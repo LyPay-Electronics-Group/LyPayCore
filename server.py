@@ -8,7 +8,7 @@ from source.admin import router as admin_router
 from source.auction import router as auction_router
 from source.promo import router as promo_router
 
-from source.mst import router as mst_router
+# from source.mst import router as mst_router
 
 from logging import getLogger, StreamHandler
 from sys import stdout
@@ -27,7 +27,7 @@ app.include_router(admin_router, prefix="/admin")
 app.include_router(auction_router, prefix="/auc")
 app.include_router(promo_router, prefix="/promo")
 
-app.include_router(mst_router, prefix="/mst")
+# app.include_router(mst_router, prefix="/mst")
 
 
 logger = getLogger("app.requests")
