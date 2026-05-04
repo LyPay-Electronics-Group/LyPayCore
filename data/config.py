@@ -60,7 +60,7 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
-IP_WHITELIST = {"127.0.0.1", "::1"}
+IP_WHITELIST = {"127.0.0.1", "::1", "111.88.106.116"}
 IP_CENSOR_UPDATE_TIME = 10
 
 
@@ -68,6 +68,6 @@ JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintol
 CHUNK_SIZE = 1024
 
 
-VERSION = "v2.5c-mst"
-NAME = "MST"
-BUILD = 21.1
+VERSION = "v2.5c"
+NAME = "MST-2"
+BUILD = 22.1

@@ -34,7 +34,7 @@ async def get_machine_info():
                 "ram_p": r.percent,
                 "ram_v": (r.total - r.available) / 1073741824,
                 "cpu_build": sum(list(map(lambda p: p.cpu_percent(), python_processes))) / len(python_processes),
-                "ram_build_p": sum(list(map(lambda p: p.memory_percent(), python_processes))) / len(python_processes),
+                "ram_build_p": round(sum(list(map(lambda p: p.memory_percent(), python_processes))) / len(python_processes), 2),
                 "ram_build_v": sum(list(map(lambda p: p.memory_info().rss, python_processes))) / 1073741824 / len(python_processes),
                 "cpu_cores": CPU(percpu=True)
             },
