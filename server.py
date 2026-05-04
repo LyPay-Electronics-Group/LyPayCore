@@ -16,6 +16,10 @@ from source.promo import router as promo_router
 
 from source.mst import router as mst_router
 
+from logging import getLogger, StreamHandler
+from sys import stdout
+from middleware.logger import CustomLog
+
 from data import config as cfg
 
 
@@ -31,6 +35,14 @@ app.include_router(promo_router, prefix="/promo")
 
 app.include_router(mst_router, prefix="/mst")
 
+logger = getLogger("app.requests")
+logger.setLevel(20)  # level INFO
+logger.addHandler(StreamHandler(stdout))
+
+app.add_middleware(CustomLog, app_logger=logger, blacklist=[
+    "/mst/machine/local_stats",
+    "/mst/machine/core_stats"
+])
 
 def update_whitelist():
     global current_IP_WHITELIST
