@@ -1,10 +1,24 @@
-from uvicorn import run
-from server import app
-
+from os import system, getenv
+from platform import system as get_platform
 from dotenv import load_dotenv
-from os import getenv
 
 load_dotenv()
 
 
-run(app, host=getenv("LYPAY_HOST"), port=int(getenv("LYPAY_PORT")))
+if get_platform() == "Windows":
+    system(
+        f"uvicorn server:app "
+        "--no-access-log "
+        f"--workers %NUMBER_OF_PROCESSORS% "
+        f"--host {getenv('LYPAY_HOST')} "
+        f"--port {getenv('LYPAY_PORT')}"
+   )
+
+elif get_platform() == "Linux":
+    system(
+        f"uvicorn server:app "
+        "--no-access-log "
+        f"--workers $(nproc) "
+        f"--host {getenv('LYPAY_HOST')} "
+        f"--port {getenv('LYPAY_PORT')}"
+    )
