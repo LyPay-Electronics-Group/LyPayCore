@@ -1,5 +1,6 @@
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp, Request, Response
+from starlette.types import ASGIApp
+from fastapi import Request, Response
 
 from dotenv import load_dotenv
 from os import getenv
