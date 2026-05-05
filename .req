@@ -6,3 +6,4 @@ python-dotenv==1.2.2
 segno==1.6.6
 PyJWT==2.12.1
 python-multipart==0.0.22
+colorama==0.4.6

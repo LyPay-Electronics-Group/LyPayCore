@@ -1,9 +1,4 @@
-from fastapi import FastAPI, Request, Response
-from typing import Callable, Awaitable
-
-from importlib import reload
-
-from scripts.unix import raw as unix_raw
+from fastapi import FastAPI
 
 from source.firewall import router as firewall_router
 from source.registration import router as registration_router
@@ -12,46 +7,35 @@ from source.store import router as store_router
 from source.admin import router as admin_router
 from source.auction import router as auction_router
 from source.promo import router as promo_router
+# from source.mst import router as mst_router
 
-from source.mst import router as mst_router
+from logging import getLogger, StreamHandler
+from sys import stdout
 
-from data import config as cfg
+from middleware.logger import CustomLog
+from middleware.whitelist import IPWhitelist
 
 
 app = FastAPI()
-app.include_router(firewall_router, prefix="/fw")
+app.include_router(firewall_router,     prefix="/fw")
 app.include_router(registration_router, prefix="/reg")
-
-app.include_router(user_router, prefix="/user")
-app.include_router(store_router, prefix="/store")
-app.include_router(admin_router, prefix="/admin")
-app.include_router(auction_router, prefix="/auc")
-app.include_router(promo_router, prefix="/promo")
-
-app.include_router(mst_router, prefix="/mst")
+app.include_router(user_router,         prefix="/user")
+app.include_router(store_router,        prefix="/store")
+app.include_router(admin_router,        prefix="/admin")
+app.include_router(auction_router,      prefix="/auc")
+app.include_router(promo_router,        prefix="/promo")
+# app.include_router(mst_router,          prefix="/mst")
 
 
-IP_CENSOR_update_target = unix_raw() + 2 * cfg.IP_CENSOR_UPDATE_TIME
+logger = getLogger("app.requests")
+logger.setLevel(20)  # level INFO
+logger.addHandler(StreamHandler(stdout))
 
-@app.middleware("http")
-async def IP_censor(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
-    """
-    Проверяет IP отправителя реквеста на всём http поле
-
-    :param request: исходные данные реквеста
-    :param call_next: следующий миддлвэри-фильтр или целевая функция
-    :return: ответ call_next
-    """
-    global IP_CENSOR_update_target
-
-    if unix_raw() >= IP_CENSOR_update_target:
-        IP_CENSOR_update_target = unix_raw() + cfg.IP_CENSOR_UPDATE_TIME
-        reload(cfg)
-
-    if request.client.host not in cfg.IP_WHITELIST:
-        return Response(status_code=402)
-
-    return await call_next(request)
+app.add_middleware(CustomLog, app_logger=logger, blacklist=[
+    "/mst/machine/local_stats",
+    "/mst/machine/core_stats"
+])
+app.add_middleware(IPWhitelist)
 
 
 @app.get("/")
