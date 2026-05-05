@@ -9,8 +9,8 @@ c_init(autoreset=True)
 
 
 class CustomLog(BaseHTTPMiddleware):
-    max_client_length = 21
-    max_message_length = 100
+    max_client_length = 15
+    max_message_length = 106
 
     def __init__(self, app: ASGIApp, app_logger: Logger, blacklist: list[str]):
         super().__init__(app)
@@ -22,17 +22,28 @@ class CustomLog(BaseHTTPMiddleware):
         response = await call_next(request)
 
         if request.url.path not in self.blacklist:
-            client = f"{request.client.host}:{request.client.port}"
+            client = Fore.LIGHTBLACK_EX + Style.BRIGHT + request.client.host
+            client_tab = " " * max(self.max_client_length - len(request.client.host), 0)
+
             message = Fore.GREEN + Style.NORMAL + f"{request.method}" + \
             (' ' if request.method == "GET" else '') + \
-            Fore.CYAN + Style.NORMAL + f" {request.url.path}" + Style.RESET_ALL
+            Fore.CYAN + Style.NORMAL + f" {request.url.path}"
+            message_tab = " " * max(self.max_message_length - len(message) - 5, 0)
+
+            if response.status_code >= 400:
+                status_code = Fore.RED
+            elif response.status_code >= 300:
+                status_code = Fore.YELLOW
+            else:
+                status_code = Fore.GREEN
+            status_code += f"{response.status_code} {HTTPStatus(response.status_code).phrase}"
 
             self.app_logger.info(
-                Fore.LIGHTBLACK_EX + Style.BRIGHT + client + Style.RESET_ALL + \
-                " " * max(self.max_client_length - len(client), 0) +
-                " | " + message + " " * max(self.max_message_length - len(message) - 5, 0) + " | " +
-                (Fore.RED if response.status_code >= 400 else (Fore.YELLOW if response.status_code >= 300 else Fore.GREEN)) +
-                f"{response.status_code} {HTTPStatus(response.status_code).phrase}" + Style.RESET_ALL
+                client + Style.RESET_ALL + client_tab +
+                " | " +
+                message + Style.RESET_ALL + message_tab +
+                " | " +
+                status_code + Style.RESET_ALL
             )
 
         return response
