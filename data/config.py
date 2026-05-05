@@ -68,5 +68,5 @@ CHUNK_SIZE = 1024
 
 
 VERSION = "v2.5c"
-NAME = "MST-2"
-BUILD = 22.1
+NAME = "FullStack"
+BUILD = 22
