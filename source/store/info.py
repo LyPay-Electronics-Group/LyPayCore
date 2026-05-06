@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory
 from data import config as cfg
 
 
@@ -10,7 +11,10 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/get")
-async def get_basic_info(ID: str = None):
+async def get_basic_info(
+        ID: str = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -30,7 +34,9 @@ async def get_basic_info(ID: str = None):
 
 
 @router.get("/all/stores")
-async def get_all_stores_ids():
+async def get_all_stores_ids(
+        _ = Depends(token_validate_factory('default'))
+):
     try:
         return JSONResponse(
             {"ids": db.searchall("stores", "ID")},
@@ -41,7 +47,9 @@ async def get_all_stores_ids():
 
 
 @router.get("/all/shopkeepers")
-async def get_all_shopkeepers():
+async def get_all_shopkeepers(
+        _ = Depends(token_validate_factory('default'))
+):
     try:
         return JSONResponse(
             {"ids": db.searchall("shopkeepers", "userID")},
@@ -52,7 +60,10 @@ async def get_all_shopkeepers():
 
 
 @router.get("/link")
-async def check_link(link: str = None):
+async def check_link(
+        link: str = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if link is None:
         return parser.form_error_bad_parsing()
 

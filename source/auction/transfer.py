@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory
 from data import config as cfg
 
 
@@ -10,7 +11,12 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/transfer")
-async def check_agent_status(ID_in: str = None, ID_out: str = None, amount: int = None):
+async def check_agent_status(
+        ID_in:  str = None,
+        ID_out: str = None,
+        amount: int = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if ID_in is None or ID_out is None or amount is None:
         return parser.form_error_bad_parsing()
 

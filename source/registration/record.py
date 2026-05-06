@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from os.path import exists
 from dotenv import load_dotenv
 
 from scripts import parser, memory, lpsql, censor
+from scripts.token_validator import token_validate_factory
 from scripts.idgen import IDGenerator
 from scripts.unix import unix
 from data.config import PATHS
@@ -18,7 +19,16 @@ load_dotenv()
 
 
 @router.get("/user")
-async def new_user(name: str = None, login: str = None, password: str = None, group: str = None, email: str = None, tag: str = None, owner_flag: str = None):
+async def new_user(
+        name: str = None,
+        login: str = None,
+        password: str = None,
+        group: str = None,
+        email: str = None,
+        tag: str = None,
+        owner_flag: str = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if any(t is None for t in (name, login, password, group, email, owner_flag)) \
             or owner_flag not in ('tg_owner', 'tg_guest',
                                   'web_owner', 'web_guest',
@@ -64,7 +74,14 @@ async def new_user(name: str = None, login: str = None, password: str = None, gr
 
 
 @router.get("/store")
-async def new_store(name: str = None, storeID: str = None, hostID: int = None, email: str = None, description: str = None):
+async def new_store(
+        name:        str = None,
+        storeID:     str = None,
+        hostID:      int = None,
+        email:       str = None,
+        description: str = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if any(t is None for t in (name, storeID, hostID, email)):
         return parser.form_error_bad_parsing()
     if description is None:
@@ -113,7 +130,9 @@ async def new_store(name: str = None, storeID: str = None, hostID: int = None, e
 
 
 @router.get("/store_id")
-async def get_available_store_id():
+async def get_available_store_id(
+        _ = Depends(token_validate_factory('default'))
+):
     try:
         return JSONResponse(
             {"ID": await idgen.storeID()},

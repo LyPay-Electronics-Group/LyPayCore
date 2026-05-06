@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from psutil import cpu_percent as CPU, virtual_memory as RAM, process_iter
 from platform import system as get_platform_name
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory
 from data import config as cfg
 
 
@@ -15,7 +16,9 @@ platform_name = get_platform_name()
 
 
 @router.get("/machine")
-async def get_machine_info():
+async def get_machine_info(
+        _ = Depends(token_validate_factory('default'))
+):
     try:
         python_processes = list()
         for running_process in process_iter():
@@ -45,7 +48,11 @@ async def get_machine_info():
 
 
 @router.get("/db")
-async def get_db_info(db_type: str = None, query: str = None):
+async def get_db_info(
+        db_type: str = None,
+        query:   str = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if query is None or db_type is None or db_type not in ('main', 'fw'):
         return parser.form_error_bad_parsing()
 

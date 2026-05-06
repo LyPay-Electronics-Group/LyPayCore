@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory
 from data import config as cfg
 
 
@@ -10,7 +11,10 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/balance")
-async def balance(ID: int = None):
+async def balance(
+        ID: int = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -26,7 +30,12 @@ async def balance(ID: int = None):
 
 
 @router.get("/deposit")
-async def deposit(ID: int = None, value: int = None, agent_id: int = None):
+async def deposit(
+        ID: int = None,
+        value: int = None,
+        agent_id: int = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if ID is None or value is None:
         return parser.form_error_bad_parsing()
 
@@ -43,7 +52,13 @@ async def deposit(ID: int = None, value: int = None, agent_id: int = None):
 
 
 @router.get("/transfer")
-async def transfer(ID_out: int = None, ID_in: str = None, amount: int = None, mode: str = None):
+async def transfer(
+        ID_out: int = None,
+        ID_in: str = None,
+        amount: int = None,
+        mode: str = None,
+        _ = Depends(token_validate_factory('default'))
+):
     if ID_out is None or ID_in is None or amount is None or mode is None or mode not in ('t', 'b'):
         return parser.form_error_bad_parsing()
 
