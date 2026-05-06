@@ -10,7 +10,8 @@ c_init(autoreset=True)
 
 class CustomLog(BaseHTTPMiddleware):
     max_client_length = 15
-    max_message_length = 104
+    max_token_length = 9
+    max_message_length = 95
 
     def __init__(self, app: ASGIApp, app_logger: Logger, blacklist: list[str]):
         super().__init__(app)
@@ -24,6 +25,10 @@ class CustomLog(BaseHTTPMiddleware):
         if request.url.path not in self.blacklist:
             client = Fore.LIGHTBLACK_EX + Style.BRIGHT + request.client.host
             client_tab = " " * max(self.max_client_length - len(request.client.host), 0)
+
+            token = getattr(request.state, "token", "<missing>")
+            token_str = Fore.YELLOW + Style.DIM + str(token)
+            token_tab = " " * max(self.max_token_length - len(token), 0)
 
             message = Fore.GREEN + Style.NORMAL + f"{request.method}" + \
             (' ' if request.method == "GET" else '') + \
@@ -40,6 +45,8 @@ class CustomLog(BaseHTTPMiddleware):
 
             self.app_logger.info(
                 client + Style.RESET_ALL + client_tab +
+                " | " +
+                token_str + Style.RESET_ALL + token_tab +
                 " | " +
                 message + Style.RESET_ALL + message_tab +
                 " | " +
