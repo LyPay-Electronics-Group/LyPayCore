@@ -27,6 +27,7 @@ class Tokenizer(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         query = dict(request.query_params)
         token = query.pop("token", "default")
+        request.state.token = token
 
         await self._refresh_config()
         whitelist = self.config.get(token, None)
@@ -38,7 +39,6 @@ class Tokenizer(BaseHTTPMiddleware):
 
         new_query = urlencode(query) if len(query) > 0 else ''
         request.scope["query_string"] = new_query.encode("utf8")
-        request.state.token = token
 
         return await call_next(request)
 
