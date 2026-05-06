@@ -33,7 +33,7 @@ class Tokenizer(BaseHTTPMiddleware):
 
         if whitelist is None:
             return Response(status_code=402)
-        if request.client.host not in whitelist:
+        if request.client.host not in whitelist and None not in whitelist:
             return Response(status_code=403)
 
         new_query = urlencode(query) if len(query) > 0 else ''
