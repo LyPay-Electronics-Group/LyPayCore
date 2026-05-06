@@ -13,7 +13,7 @@ from logging import getLogger, StreamHandler
 from sys import stdout
 
 from middleware.logger import CustomLog
-from middleware.whitelist import IPWhitelist
+from middleware.tokenizer import Tokenizer
 
 
 app = FastAPI()
@@ -35,7 +35,7 @@ app.add_middleware(CustomLog, app_logger=logger, blacklist=[
     "/mst/machine/local_stats",
     "/mst/machine/core_stats"
 ])
-app.add_middleware(IPWhitelist)
+app.add_middleware(Tokenizer)
 
 
 @app.get("/")
