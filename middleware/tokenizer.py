@@ -31,8 +31,10 @@ class Tokenizer(BaseHTTPMiddleware):
         await self._refresh_config()
         whitelist = self.config.get(token, None)
 
-        if whitelist is None or request.client.host not in whitelist:
+        if whitelist is None:
             return Response(status_code=402)
+        if request.client.host not in whitelist:
+            return Response(status_code=403)
 
         new_query = urlencode(query) if len(query) > 0 else ''
         request.scope["query_string"] = new_query.encode("utf8")
