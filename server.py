@@ -16,7 +16,7 @@ from middleware.logger import CustomLog
 from middleware.tokenizer import Tokenizer
 
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(firewall_router,     prefix="/fw")
 app.include_router(registration_router, prefix="/reg")
 app.include_router(user_router,         prefix="/user")
