@@ -60,7 +60,8 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
-IP_CENSOR_UPDATE_TIME = 10
+IP_CONFIG_REFRESH_DELTA = 10
+IP_CONFIG_FILE = "ip.json"
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
