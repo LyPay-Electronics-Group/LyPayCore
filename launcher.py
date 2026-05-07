@@ -2,7 +2,7 @@ from os import system, getenv
 from platform import system as get_platform
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(".envy")
 
 
 if get_platform() == "Windows":

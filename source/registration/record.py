@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from os.path import exists
-from dotenv import load_dotenv
 
 from scripts import parser, memory, lpsql, censor
 from scripts.token_validator import token_validate_factory
@@ -15,7 +14,6 @@ router = APIRouter()
 db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 idgen = IDGenerator(db)
 firewall4 = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
-load_dotenv()
 
 
 @router.get("/user")
