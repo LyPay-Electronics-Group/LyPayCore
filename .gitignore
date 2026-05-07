@@ -1,7 +1,6 @@
 /.idea/
-/.venv/
 
-/.env
+/.*env*
 /ip.json
 
 /__pycache__/
