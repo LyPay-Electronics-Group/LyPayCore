@@ -23,8 +23,10 @@ async def get_machine_info(
         python_processes = list()
         for running_process in process_iter():
             if running_process.name() == (
-                    "python.exe" if platform_name == 'Windows' else
-                    ("python3" if platform_name == 'Linux' else "")
+                    "python.exe" if platform_name == 'Windows' else (
+                    "python3" if platform_name == 'Linux' else (
+                    "python" if platform_name == 'Linux' else ""
+                    ))
             ) and len(running_process.cmdline()) > 0:  # and running_process.cmdline()[-1] == lls -- legacy part
                 python_processes.append(running_process)
         if len(python_processes) == 0:
