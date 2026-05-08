@@ -22,12 +22,7 @@ async def get_machine_info(
     try:
         python_processes = list()
         for running_process in process_iter():
-            if running_process.name() == (
-                    "python.exe" if platform_name == 'Windows' else (
-                    "python3" if platform_name == 'Linux' else (
-                    "python" if platform_name == 'Linux' else ""
-                    ))
-            ) and len(running_process.cmdline()) > 0:  # and running_process.cmdline()[-1] == lls -- legacy part
+            if running_process.name() in ("python", "python3", "python.exe") and len(running_process.cmdline()) > 0:
                 python_processes.append(running_process)
         if len(python_processes) == 0:
             return parser.form_error(NameError(), "no python processes found", 404)
