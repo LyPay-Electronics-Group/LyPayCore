@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from os.path import exists
 
 from scripts import parser, memory, lpsql, censor
-from scripts.token_validator import token_validate_factory
+from scripts.token_validator import token_validate_factory as TVF
 from scripts.idgen import IDGenerator
 from scripts.unix import unix
 from data.config import PATHS
@@ -18,14 +18,14 @@ firewall4 = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWA
 
 @router.get("/user")
 async def new_user(
-        name: str = None,
-        login: str = None,
-        password: str = None,
-        group: str = None,
-        email: str = None,
-        tag: str = None,
+        name:       str = None,
+        login:      str = None,
+        password:   str = None,
+        group:      str = None,
+        email:      str = None,
+        tag:        str = None,
         owner_flag: str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if any(t is None for t in (name, login, password, group, email, owner_flag)) \
             or owner_flag not in ('tg_owner', 'tg_guest',
@@ -78,7 +78,7 @@ async def new_store(
         hostID:      int = None,
         email:       str = None,
         description: str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if any(t is None for t in (name, storeID, hostID, email)):
         return parser.form_error_bad_parsing()
@@ -129,7 +129,7 @@ async def new_store(
 
 @router.get("/store_id")
 async def get_available_store_id(
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     try:
         return JSONResponse(

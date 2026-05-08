@@ -5,7 +5,7 @@ from os.path import getmtime, exists
 from os import remove
 
 from scripts import lpsql, parser, memory
-from scripts.token_validator import token_validate_factory
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -17,7 +17,7 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 async def get_avatar(
         ID:   str = None,
         unix: float = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -59,7 +59,7 @@ async def get_avatar(
 async def update_avatar(
         avatar: UploadFile,
         ID:     str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -85,7 +85,7 @@ async def update_avatar(
 @router.get("/remove")
 async def remove_avatar(
         ID: str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()

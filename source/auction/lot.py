@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
-from scripts.token_validator import token_validate_factory
+from scripts.token_validator import token_validate_factory as TVF
 from scripts.idgen import IDGenerator
 from data import config as cfg
 
@@ -17,7 +17,7 @@ async def create_new_lot(
         name:      str = None,
         price:     int = None,
         auctionID: int = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if name is None or price is None or auctionID is None:
         return parser.form_error_bad_parsing()
@@ -44,7 +44,7 @@ async def create_new_lot(
 @router.get("/confirm")
 async def confirm_lot(
         lotID: int = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if lotID is None:
         return parser.form_error_bad_parsing()

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
-from scripts.token_validator import token_validate_factory
+from scripts.token_validator import token_validate_factory as TVF
 from scripts.unix import unix
 from data import config as cfg
 
@@ -15,7 +15,7 @@ firewall4 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FI
 @router.get("/list")
 async def access_list(
         storeID: str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if storeID is None:
         return parser.form_error_bad_parsing()
@@ -42,7 +42,7 @@ async def access_list(
 async def access_add(
         storeID: str = None,
         userID:  int = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if storeID is None or userID is None:
         return parser.form_error_bad_parsing()
@@ -83,7 +83,7 @@ async def access_add(
 async def remove_access(
         storeID: str = None,
         userID:  int = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if storeID is None or userID is None:
         return parser.form_error_bad_parsing()

@@ -5,7 +5,7 @@ from psutil import cpu_percent as CPU, virtual_memory as RAM, process_iter
 from platform import system as get_platform_name
 
 from scripts import lpsql, parser
-from scripts.token_validator import token_validate_factory
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -17,7 +17,7 @@ platform_name = get_platform_name()
 
 @router.get("/machine")
 async def get_machine_info(
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     try:
         python_processes = list()
@@ -51,7 +51,7 @@ async def get_machine_info(
 async def get_db_info(
         db_type: str = None,
         query:   str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if query is None or db_type is None or db_type not in ('main', 'fw'):
         return parser.form_error_bad_parsing()

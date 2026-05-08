@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from jwt import decode as jwt_decode
 
 from scripts import parser, lpsql, mailer
-from scripts.token_validator import token_validate_factory
+from scripts.token_validator import token_validate_factory as TVF
 from scripts.unix import unix
 from scripts.idgen import IDGenerator
 from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY, EMAIL
@@ -21,7 +21,7 @@ async def send(
         route: str = None,
         code:  str = None,
         keys:  str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if any(t is None for t in (email, route)) or route not in ('main', 'guest', 'shopkeeper'):
         return parser.form_error_bad_parsing()
@@ -107,7 +107,7 @@ async def send(
 @router.get("/corp_record")
 async def check_corporation_record(
         email: str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if email is None:
         return parser.form_error_bad_parsing()

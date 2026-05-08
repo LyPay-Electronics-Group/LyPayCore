@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
-from scripts.token_validator import token_validate_factory
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -15,7 +15,7 @@ async def get_basic_info(
         ID:    int = None,
         email: str = None,
         login: str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if ID is None and email is None and login is None:
         return parser.form_error_bad_parsing()
@@ -44,7 +44,7 @@ async def get_basic_info(
 
 @router.get("/all")
 async def get_all_users_ids(
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     try:
         return JSONResponse(
@@ -58,7 +58,7 @@ async def get_all_users_ids(
 @router.get("/code")
 async def check_code(
         code: str = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if code is None:
         return parser.form_error_bad_parsing()

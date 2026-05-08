@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
-from scripts.token_validator import token_validate_factory
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -15,7 +15,7 @@ async def check_agent_status(
         ID_in:  str = None,
         ID_out: str = None,
         amount: int = None,
-        _ = Depends(token_validate_factory('default'))
+        _ = Depends(TVF('default'))
 ):
     if ID_in is None or ID_out is None or amount is None:
         return parser.form_error_bad_parsing()
