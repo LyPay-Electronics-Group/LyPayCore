@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser, censor
@@ -15,7 +15,7 @@ idgen = IDGenerator(db)
 @router.get("/get")
 async def get_item(
         itemID: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if itemID is None:
         return parser.form_error_bad_parsing()
@@ -39,7 +39,7 @@ async def get_item(
 async def get_all_items(
         storeID:       str = None,
         active_filter: int = None,  # active_filter : bool
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if storeID is None:
         return parser.form_error_bad_parsing()
@@ -69,7 +69,7 @@ async def create_item(
         storeID: str = None,
         name:    str = None,
         price:   int = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if storeID is None or name is None or price is None:
         return parser.form_error_bad_parsing()
@@ -105,7 +105,7 @@ async def create_item(
 @router.get("/rem")
 async def remove_item(
         itemID: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if itemID is None:
         return parser.form_error_bad_parsing()
@@ -128,7 +128,7 @@ async def edit_item(
         itemID: str = None,
         name: str = None,
         price: int = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if itemID is None or (name is None and price is None):
         return parser.form_error_bad_parsing()

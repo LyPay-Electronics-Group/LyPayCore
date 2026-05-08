@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from jwt import decode as jwt_decode
@@ -18,7 +18,7 @@ idgen = IDGenerator(db)
 @router.get("/get")
 async def get_cheque(
         chequeID: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if chequeID is None:
         return parser.form_error_bad_parsing()
@@ -42,7 +42,7 @@ async def get_cheque(
 async def get_all_cheques(
         storeID:       str = None,
         active_filter: int = None,  # active_filter : bool
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if storeID is None:
         return parser.form_error_bad_parsing()
@@ -72,7 +72,7 @@ async def create_cheque(
         storeID:  str = None,
         customer: int = None,
         items:    str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if storeID is None or customer is None or items is None:
         return parser.form_error_bad_parsing()
@@ -105,7 +105,7 @@ async def create_cheque(
 @router.get("/de")
 async def cancel_cheque(
         chequeID: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if chequeID is None:
         return parser.form_error_bad_parsing()

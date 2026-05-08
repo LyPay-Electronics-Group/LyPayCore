@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from psutil import cpu_percent as CPU, virtual_memory as RAM, process_iter
@@ -17,7 +17,7 @@ platform_name = get_platform_name()
 
 @router.get("/machine")
 async def get_machine_info(
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     try:
         python_processes = list()
@@ -51,7 +51,7 @@ async def get_machine_info(
 async def get_db_info(
         db_type: str = None,
         query:   str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if query is None or db_type is None or db_type not in ('main', 'fw'):
         return parser.form_error_bad_parsing()

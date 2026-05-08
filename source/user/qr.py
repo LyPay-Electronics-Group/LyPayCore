@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse, FileResponse
 
 from os.path import exists, getmtime
@@ -16,7 +16,7 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 async def check(
         ID: str = None,
         unix: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None or unix is None:
         return parser.form_error_bad_parsing()
@@ -35,7 +35,7 @@ async def check(
 @router.get("/get")
 async def get(
         ID: int = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()

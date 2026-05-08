@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
@@ -14,7 +14,7 @@ firewall4 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FI
 @router.get("/check")
 async def check_agent_status(
         userID: int = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if userID is None:
         return parser.form_error_bad_parsing()
@@ -39,7 +39,7 @@ async def do_agent_deposit(
         userID:  int = None,
         amount:  int = None,
         agentID: int = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if userID is None or amount is None or agentID is None:
         return parser.form_error_bad_parsing()

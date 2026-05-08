@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from os.path import exists
@@ -25,7 +25,7 @@ async def new_user(
         email:      str = None,
         tag:        str = None,
         owner_flag: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if any(t is None for t in (name, login, password, group, email, owner_flag)) \
             or owner_flag not in ('tg_owner', 'tg_guest',
@@ -78,7 +78,7 @@ async def new_store(
         hostID:      int = None,
         email:       str = None,
         description: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if any(t is None for t in (name, storeID, hostID, email)):
         return parser.form_error_bad_parsing()
@@ -129,7 +129,7 @@ async def new_store(
 
 @router.get("/store_id")
 async def get_available_store_id(
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     try:
         return JSONResponse(

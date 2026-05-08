@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
@@ -15,7 +15,7 @@ async def get_basic_info(
         ID:    int = None,
         email: str = None,
         login: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None and email is None and login is None:
         return parser.form_error_bad_parsing()
@@ -44,7 +44,7 @@ async def get_basic_info(
 
 @router.get("/all")
 async def get_all_users_ids(
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     try:
         return JSONResponse(
@@ -58,7 +58,7 @@ async def get_all_users_ids(
 @router.get("/code")
 async def check_code(
         code: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if code is None:
         return parser.form_error_bad_parsing()

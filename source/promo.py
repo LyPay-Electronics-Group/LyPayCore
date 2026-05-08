@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
@@ -12,7 +12,7 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 @router.get("/all")
 async def get_all(
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     try:
         return JSONResponse(
@@ -26,7 +26,7 @@ async def get_all(
 @router.get("/get")
 async def get(
         ID: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -51,7 +51,7 @@ async def add(
         ID:     str = None,
         value:  str = None,
         author: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None or value is None or author is None:
         return parser.form_error_bad_parsing()
@@ -79,7 +79,7 @@ async def edit(
         value:  str = None,
         author: str = None,
         active: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None or not any((value, author, active)):
         return parser.form_error_bad_parsing()

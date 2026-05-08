@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from jwt import decode as jwt_decode
@@ -21,7 +21,7 @@ async def send(
         route: str = None,
         code:  str = None,
         keys:  str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if any(t is None for t in (email, route)) or route not in ('main', 'guest', 'shopkeeper'):
         return parser.form_error_bad_parsing()
@@ -107,7 +107,7 @@ async def send(
 @router.get("/corp_record")
 async def check_corporation_record(
         email: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if email is None:
         return parser.form_error_bad_parsing()

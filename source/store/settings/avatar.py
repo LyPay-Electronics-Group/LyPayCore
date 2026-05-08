@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, Depends
+from fastapi import APIRouter, UploadFile, Depends as D
 from fastapi.responses import JSONResponse, FileResponse
 
 from os.path import getmtime, exists
@@ -17,7 +17,7 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 async def get_avatar(
         ID:   str = None,
         unix: float = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -59,7 +59,7 @@ async def get_avatar(
 async def update_avatar(
         avatar: UploadFile,
         ID:     str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -85,7 +85,7 @@ async def update_avatar(
 @router.get("/remove")
 async def remove_avatar(
         ID: str = None,
-        _ = Depends(TVF('default'))
+        _ = D(TVF('default'))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
