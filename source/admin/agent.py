@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -11,7 +12,10 @@ firewall4 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FI
 
 
 @router.get("/check")
-async def check_agent_status(userID: int = None):
+async def check_agent_status(
+        userID: int = None,
+        _ = D(TVF('default'))
+):
     if userID is None:
         return parser.form_error_bad_parsing()
 
@@ -31,7 +35,12 @@ async def check_agent_status(userID: int = None):
 
 
 @router.get("/deposit")
-async def do_agent_deposit(userID: int = None, amount: int = None, agentID: int = None):
+async def do_agent_deposit(
+        userID:  int = None,
+        amount:  int = None,
+        agentID: int = None,
+        _ = D(TVF('default'))
+):
     if userID is None or amount is None or agentID is None:
         return parser.form_error_bad_parsing()
 

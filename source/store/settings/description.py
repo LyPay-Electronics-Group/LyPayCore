@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser, censor
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -10,7 +11,10 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/get")
-async def get_description(ID: str = None):
+async def get_description(
+        ID: str = None,
+        _ = D(TVF('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -30,7 +34,11 @@ async def get_description(ID: str = None):
 
 
 @router.get("/upd")
-async def update_description(ID: str = None, new: str = None):
+async def update_description(
+        ID:  str = None,
+        new: str = None,
+        _ = D(TVF('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
     if new is None:

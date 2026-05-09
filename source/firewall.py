@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory as TVF
 from data.config import PATHS
 
 
@@ -10,7 +11,11 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 
 
 @router.get("/{route}")
-async def info(route: str, ID: str = None):
+async def info(
+        route: str,
+        ID:    str = None,
+        _ = D(TVF('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
     elif route.lower() not in ('main', 'stores', 'admins', 'high'):

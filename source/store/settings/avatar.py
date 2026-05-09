@@ -1,10 +1,11 @@
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter, UploadFile, Depends as D
 from fastapi.responses import JSONResponse, FileResponse
 
 from os.path import getmtime, exists
 from os import remove
 
 from scripts import lpsql, parser, memory
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -13,7 +14,11 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/get")
-async def get_avatar(ID: str = None, unix: float = None):
+async def get_avatar(
+        ID:   str = None,
+        unix: float = None,
+        _ = D(TVF('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -51,7 +56,11 @@ async def get_avatar(ID: str = None, unix: float = None):
 
 
 @router.post("/upd")
-async def update_avatar(avatar: UploadFile, ID: str = None):
+async def update_avatar(
+        avatar: UploadFile,
+        ID:     str = None,
+        _ = D(TVF('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -74,7 +83,10 @@ async def update_avatar(avatar: UploadFile, ID: str = None):
 
 
 @router.get("/remove")
-async def remove_avatar(ID: str = None):
+async def remove_avatar(
+        ID: str = None,
+        _ = D(TVF('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
 

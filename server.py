@@ -13,10 +13,10 @@ from logging import getLogger, StreamHandler
 from sys import stdout
 
 from middleware.logger import CustomLog
-from middleware.whitelist import IPWhitelist
+from middleware.tokenizer import Tokenizer
 
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(firewall_router,     prefix="/fw")
 app.include_router(registration_router, prefix="/reg")
 app.include_router(user_router,         prefix="/user")
@@ -31,11 +31,11 @@ logger = getLogger("app.requests")
 logger.setLevel(20)  # level INFO
 logger.addHandler(StreamHandler(stdout))
 
+app.add_middleware(Tokenizer)
 app.add_middleware(CustomLog, app_logger=logger, blacklist=[
     "/mst/machine/local_stats",
     "/mst/machine/core_stats"
 ])
-app.add_middleware(IPWhitelist)
 
 
 @app.get("/")

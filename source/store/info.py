@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -9,8 +10,11 @@ router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
-@router.get("/get")
-async def get_basic_info(ID: str = None):
+@router.get("/get/base")
+async def get_basic_info(
+        ID: str = None,
+        _ = D(TVF('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -29,8 +33,33 @@ async def get_basic_info(ID: str = None):
         return parser.form_error(e)
 
 
+@router.get("/get/shopkeeper")
+async def get_by_shopkeeper(
+        ID: int = None,
+        _ = D(TVF('default'))
+):
+    if ID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        search_result = db.search("shopkeepers", "userID", ID)
+        if search_result is None:
+            raise lpsql.exceptions.IDNotFound
+
+        return JSONResponse(
+            search_result,
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
+
+
 @router.get("/all/stores")
-async def get_all_stores_ids():
+async def get_all_stores_ids(
+        _ = D(TVF('default'))
+):
     try:
         return JSONResponse(
             {"ids": db.searchall("stores", "ID")},
@@ -41,7 +70,9 @@ async def get_all_stores_ids():
 
 
 @router.get("/all/shopkeepers")
-async def get_all_shopkeepers():
+async def get_all_shopkeepers(
+        _ = D(TVF('default'))
+):
     try:
         return JSONResponse(
             {"ids": db.searchall("shopkeepers", "userID")},
@@ -52,7 +83,10 @@ async def get_all_shopkeepers():
 
 
 @router.get("/link")
-async def check_link(link: str = None):
+async def check_link(
+        link: str = None,
+        _ = D(TVF('default'))
+):
     if link is None:
         return parser.form_error_bad_parsing()
 

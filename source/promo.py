@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory as TVF
 from data.config import PATHS
 
 
@@ -10,7 +11,9 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
 @router.get("/all")
-async def get_all():
+async def get_all(
+        _ = D(TVF('default'))
+):
     try:
         return JSONResponse(
             {'all': db.get_table("promo")},
@@ -21,7 +24,10 @@ async def get_all():
 
 
 @router.get("/get")
-async def get(ID: str = None):
+async def get(
+        ID: str = None,
+        _ = D(TVF('default'))
+):
     if ID is None:
         return parser.form_error_bad_parsing()
 
@@ -41,7 +47,12 @@ async def get(ID: str = None):
 
 
 @router.get("/add")
-async def add(ID: str = None, value: str = None, author: str = None):
+async def add(
+        ID:     str = None,
+        value:  str = None,
+        author: str = None,
+        _ = D(TVF('default'))
+):
     if ID is None or value is None or author is None:
         return parser.form_error_bad_parsing()
 
@@ -63,7 +74,13 @@ async def add(ID: str = None, value: str = None, author: str = None):
 
 
 @router.get("/edit")
-async def edit(ID: str = None, value: str = None, author: str = None, active: str = None):
+async def edit(
+        ID:     str = None,
+        value:  str = None,
+        author: str = None,
+        active: str = None,
+        _ = D(TVF('default'))
+):
     if ID is None or not any((value, author, active)):
         return parser.form_error_bad_parsing()
 

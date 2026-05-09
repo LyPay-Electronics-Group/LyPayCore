@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser, censor
+from scripts.token_validator import token_validate_factory as TVF
 from scripts.idgen import IDGenerator
 from data import config as cfg
 
@@ -12,7 +13,10 @@ idgen = IDGenerator(db)
 
 
 @router.get("/get")
-async def get_item(itemID: str = None):
+async def get_item(
+        itemID: str = None,
+        _ = D(TVF('default'))
+):
     if itemID is None:
         return parser.form_error_bad_parsing()
 
@@ -32,7 +36,11 @@ async def get_item(itemID: str = None):
 
 
 @router.get("/all")
-async def get_all_items(storeID: str = None, active_filter: int = None):  # active_filter : bool
+async def get_all_items(
+        storeID:       str = None,
+        active_filter: int = None,  # active_filter : bool
+        _ = D(TVF('default'))
+):
     if storeID is None:
         return parser.form_error_bad_parsing()
 
@@ -57,7 +65,12 @@ async def get_all_items(storeID: str = None, active_filter: int = None):  # acti
 
 
 @router.get("/add")
-async def create_item(storeID: str = None, name: str = None, price: int = None):
+async def create_item(
+        storeID: str = None,
+        name:    str = None,
+        price:   int = None,
+        _ = D(TVF('default'))
+):
     if storeID is None or name is None or price is None:
         return parser.form_error_bad_parsing()
 
@@ -90,7 +103,10 @@ async def create_item(storeID: str = None, name: str = None, price: int = None):
 
 
 @router.get("/rem")
-async def remove_item(itemID: str = None):
+async def remove_item(
+        itemID: str = None,
+        _ = D(TVF('default'))
+):
     if itemID is None:
         return parser.form_error_bad_parsing()
 
@@ -108,7 +124,12 @@ async def remove_item(itemID: str = None):
 
 
 @router.get("/edit")
-async def edit_item(itemID: str = None, name: str = None, price: int = None):
+async def edit_item(
+        itemID: str = None,
+        name: str = None,
+        price: int = None,
+        _ = D(TVF('default'))
+):
     if itemID is None or (name is None and price is None):
         return parser.form_error_bad_parsing()
 

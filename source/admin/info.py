@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from psutil import cpu_percent as CPU, virtual_memory as RAM, process_iter
 from platform import system as get_platform_name
 
 from scripts import lpsql, parser
+from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
@@ -15,14 +16,13 @@ platform_name = get_platform_name()
 
 
 @router.get("/machine")
-async def get_machine_info():
+async def get_machine_info(
+        _ = D(TVF('default'))
+):
     try:
         python_processes = list()
         for running_process in process_iter():
-            if running_process.name() == (
-                    "python.exe" if platform_name == 'Windows' else
-                    ("python3" if platform_name == 'Linux' else "")
-            ) and len(running_process.cmdline()) > 0:  # and running_process.cmdline()[-1] == lls -- legacy part
+            if running_process.name() in ("python", "python3", "python.exe") and len(running_process.cmdline()) > 0:
                 python_processes.append(running_process)
         if len(python_processes) == 0:
             return parser.form_error(NameError(), "no python processes found", 404)
@@ -45,7 +45,11 @@ async def get_machine_info():
 
 
 @router.get("/db")
-async def get_db_info(db_type: str = None, query: str = None):
+async def get_db_info(
+        db_type: str = None,
+        query:   str = None,
+        _ = D(TVF('default'))
+):
     if query is None or db_type is None or db_type not in ('main', 'fw'):
         return parser.form_error_bad_parsing()
 
