@@ -1,8 +1,8 @@
 from os import system, getenv
 from platform import system as get_platform
-from dotenv import load_dotenv
+from dotenv import load_dotenv as load_dotenvy
 
-load_dotenv(".envy")
+load_dotenvy(".envy")
 
 
 if get_platform() == "Windows":
