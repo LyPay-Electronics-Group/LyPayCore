@@ -10,7 +10,7 @@ router = APIRouter()
 db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 
-@router.get("/get")
+@router.get("/get/base")
 async def get_basic_info(
         ID: str = None,
         _ = D(TVF('default'))
@@ -20,6 +20,29 @@ async def get_basic_info(
 
     try:
         search_result = db.search("stores", "ID", ID)
+        if search_result is None:
+            raise lpsql.exceptions.IDNotFound
+
+        return JSONResponse(
+            search_result,
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
+
+
+@router.get("/get/shopkeeper")
+async def get_by_shopkeeper(
+        ID: int = None,
+        _ = D(TVF('default'))
+):
+    if ID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        search_result = db.search("shopkeepers", "userID", ID)
         if search_result is None:
             raise lpsql.exceptions.IDNotFound
 
