@@ -68,6 +68,6 @@ JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintol
 CHUNK_SIZE = 1024
 
 
-VERSION = "v2.5c"
-NAME = "FullStack"
-BUILD = 23
+VERSION = "v2.6c"
+NAME = "Public API"
+BUILD = 24
