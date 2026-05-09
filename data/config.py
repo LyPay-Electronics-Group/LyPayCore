@@ -61,7 +61,7 @@ class EMAIL:
 
 
 IP_CONFIG_REFRESH_DELTA = 10
-IP_CONFIG_FILE = "ip.json"
+IP_CONFIG_FILE = "tokens.json"
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
