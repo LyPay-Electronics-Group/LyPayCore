@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 from scripts.unix import raw as unix_raw
 from scripts.j2 import fromfile_async as j2_fromfile_async
 
-from data.config import IP_CONFIG_REFRESH_DELTA, IP_CONFIG_FILE
+from data.config import TOKENS_CONFIG_REFRESH_DELTA, TOKENS_CONFIG_FILE
 
 
 
@@ -15,7 +15,7 @@ class Tokenizer(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        update_interval: float = IP_CONFIG_REFRESH_DELTA
+        update_interval: float = TOKENS_CONFIG_REFRESH_DELTA
     ):
         super().__init__(app)
 
@@ -47,4 +47,4 @@ class Tokenizer(BaseHTTPMiddleware):
         now = unix_raw()
         if now >= self.next_update:
             self.next_update = now + self.update_interval
-            self.config = await j2_fromfile_async(IP_CONFIG_FILE)
+            self.config = await j2_fromfile_async(TOKENS_CONFIG_FILE)

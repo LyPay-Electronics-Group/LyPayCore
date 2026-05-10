@@ -1,4 +1,7 @@
-﻿from os import getcwd as cwd
+﻿from os import getcwd as cwd, getenv
+from dotenv import load_dotenv as load_dotenvy
+
+load_dotenvy(".envy")
 
 
 class PATHS:
@@ -60,8 +63,10 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
-IP_CONFIG_REFRESH_DELTA = 10
-IP_CONFIG_FILE = "tokens.json"
+TOKENS_CONFIG_REFRESH_DELTA = 10
+TOKENS_CONFIG_FILE = "tokens.json"
+
+BASIC_TOKENS = getenv("LYPAY_BASIC_TOKENS")
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
