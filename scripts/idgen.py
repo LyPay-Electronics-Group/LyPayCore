@@ -138,3 +138,20 @@ class IDGenerator:
 
         all_lots = self.db.searchall("auction", "lotID")
         return max(all_lots) + 1 if len(all_lots) > 0 else 1
+
+    async def fpsID(self) -> str:
+        """
+        Создаёт уникальный fpsID (с проверкой корректности)
+
+        :return: код
+        """
+
+        f = IDGEN.FPS_ID.format(
+            _=self.generate_code(IDGEN.FPS_ID_LENGTH, self.alphabet)
+        )
+        while f in self.db.searchall("fps", "ID"):
+            await sleep(IDGEN.TIMEOUT)
+            f = IDGEN.FPS_ID.format(
+                _=self.generate_code(IDGEN.FPS_ID_LENGTH, self.store_id_alphabet)
+            )
+        return f

@@ -39,11 +39,13 @@ class IDGEN:
     STORE_ID_LENGTH = 3
     ITEM_ID_LENGTH = 7
     CHEQUE_ID_LENGTH = 6
+    FPS_ID_LENGTH = 16
 
     USER_ID = "{year}{_}"
     STORE_ID = "{_}"
     ITEM_ID = "i{storeID}_{_}"
     CHEQUE_ID = "c{storeID}_{_}"
+    FPS_ID = "{_}"
 
 
 class EMAIL:
