@@ -25,15 +25,21 @@ async def new(
 ):
     if amount is None or author is None:
         return parser.form_error_bad_parsing()
-    if description is None:
-        description = default_description.format(author=author)
 
     if len(author) != 3:
         try:
             author = int(author)
+            author_search = db.search("users", "ID", author)
         except ValueError:
-            pass
+            return parser.form_error_bad_parsing()
+    else:
+        author_search = db.search("stores", "ID", author)
 
+    if author_search is None:
+        return parser.form_error(lpsql.exceptions.IDNotFound(), "ID not found", 404)
+
+    if description is None:
+        description = default_description.format(author=author)
     try:
         ID = await idgen.fpsID()
         db.insert("fps", [
