@@ -259,7 +259,7 @@ class DataBase:
             return res
 
 
-    def update(self, table: str, check_column: str, check_mean: str | int, update_column: str, update_mean: str | int | None):
+    def update(self, table: str, check_column: str, check_mean: str | int, update_column: str, update_mean: str | int | float | None):
         """
         [UNIVERSAL]
         Обновляет указанное значение, выполняя поиск по check_column и check_mean.
