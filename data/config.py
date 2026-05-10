@@ -63,10 +63,11 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
-TOKENS_CONFIG_REFRESH_DELTA = 10
-TOKENS_CONFIG_FILE = "tokens.json"
+class TOKENIZER:
+    CONFIG_REFRESH_DELTA = 10
+    CONFIG_FILE = "tokens.json"
 
-BASIC_TOKENS = getenv("LYPAY_BASIC_TOKENS")
+    BASIC_LIST = tuple(map(lambda t: t.strip(), getenv("LYPAY_BASIC_TOKENS").split(',')))
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
