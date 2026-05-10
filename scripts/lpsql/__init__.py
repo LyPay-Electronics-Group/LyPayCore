@@ -9,7 +9,7 @@ from scripts.unix import unix
 class Tables:
     MAIN = ['users', 'stores', 'shopkeepers', 'history', 'corporation', 'auction',
             'promo', 'items', 'store_form_link', 'cheques', 'access_codes_guest',
-            'access_codes_main', "mst_test3"]
+            'access_codes_main', "fps", "mst_test3"]
 
     FIREWALL = ['main', 'stores', 'admins']
 
