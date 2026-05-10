@@ -34,10 +34,9 @@ logger.setLevel(20)  # level INFO
 logger.addHandler(StreamHandler(stdout))
 
 app.add_middleware(Tokenizer)
-app.add_middleware(CustomLog, app_logger=logger, blacklist=[
-    "/mst/machine/local_stats",
-    "/mst/machine/core_stats"
-])
+app.add_middleware(CustomLog, app_logger=logger, blacklist=(
+    "/admin/machine",
+))
 
 
 @app.get("/")
