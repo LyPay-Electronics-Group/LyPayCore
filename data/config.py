@@ -67,7 +67,7 @@ class TOKENIZER:
     CONFIG_REFRESH_DELTA = 10
     CONFIG_FILE = "tokens.json"
 
-    BASIC_LIST = tuple(map(lambda t: t.strip(), getenv("LYPAY_BASIC_TOKENS").split(',')))
+    PUBLIC_LIST = tuple(map(lambda t: t.strip(), getenv("LYPAY_PUBLIC_TOKENS").split(',')))
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
