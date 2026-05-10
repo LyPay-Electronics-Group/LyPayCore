@@ -29,12 +29,13 @@ async def pay(
 
         db.transfer(userID, fps["author"], fps["amount"])
 
+        current_unix = unix()
         if type(fps["author"]) is str:
             itemID = await idgen.itemID(fps["author"])
             db.insert("items", [
                 itemID,
                 fps["author"],
-                "автоматическая оплата FPS",
+                f"автоматическая оплата FPS#{fpsID}",
                 fps["amount"],
                 False  # active flag
             ])
@@ -43,7 +44,7 @@ async def pay(
             db.insert("cheques", [
                 chequeID,
                 fps["author"],
-                unix(),
+                current_unix,
                 userID,
                 f'{{"{itemID}":1}}',
                 True  # active flag
@@ -52,7 +53,7 @@ async def pay(
             chequeID = None
 
         db.update("fps", "ID", fpsID, "payed", userID)
-        db.update("fps", "ID", fpsID, "unix_payment", unix())
+        db.update("fps", "ID", fpsID, "unix_payment", current_unix)
         db.update("fps", "ID", fpsID, "cheque", chequeID)
 
         return JSONResponse(
