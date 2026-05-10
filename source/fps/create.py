@@ -65,11 +65,19 @@ async def cancel(
         return parser.form_error_bad_parsing()
 
     try:
-        db.manual(f"DELETE FROM fps WHERE ID like \"{ID}\"")
+        search_result = db.search("fps", "ID", ID)
+        if search_result is None:
+            raise lpsql.exceptions.IDNotFound
 
-        return JSONResponse(
-            {'ok': True},
-            status_code=200
-        )
+        if search_result["payed"] is None:
+            db.manual(f"DELETE FROM fps WHERE ID like \"{ID}\"")
+            return JSONResponse(
+                {'ok': True},
+                status_code=200
+            )
+
+        return parser.form_error(PermissionError(), "FPS is payed", 403)
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
