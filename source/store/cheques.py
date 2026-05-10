@@ -89,7 +89,7 @@ async def create_cheque(
             storeID,
             unix(),
             customer,
-            j2.to_(parsed_items, string_mode=True)[1:-1],
+            j2.to_(parsed_items, string_mode=True),
             True  # active flag
         ])
         return JSONResponse(
@@ -116,10 +116,10 @@ async def cancel_cheque(
             raise lpsql.exceptions.EntryNotFound
 
         amount = 0
-        for itemID, multiplier in j2.from_('{' + cheque["items"] + '}').items():
+        for itemID, multiplier in j2.from_(cheque["items"]).items():
             item = db.search("items", "itemID", itemID)
             if item is None:
-                raise lpsql.exceptions.IDNotFound
+                continue  # raise lpsql.exceptions.IDNotFound
             amount += item["price"] * multiplier
         db.transfer(cheque["storeID"], cheque["customer"], amount)
 
