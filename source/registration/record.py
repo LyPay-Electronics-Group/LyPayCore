@@ -123,6 +123,10 @@ async def new_store(
                 "added via automatic register code"  # comment
             ]
         )
+        return JSONResponse(
+            {'ok': True},
+            status_code=201
+        )
     except Exception as e:
         return parser.form_error(e)
 

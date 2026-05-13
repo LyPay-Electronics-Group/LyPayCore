@@ -23,13 +23,17 @@ async def get_basic_info(
     try:
         if ID is not None:
             result = db.search("users", "ID", ID)
+            if result is None:
+                raise lpsql.exceptions.IDNotFound()
         elif email is not None:
             result = db.search("users", "email", email)
+            if result is None:
+                raise lpsql.exceptions.EmailNotFound()
         else:
             result = db.search("users", "login", login)
+            if result is None:
+                raise lpsql.exceptions.EntryNotFound()
 
-        if result is None:
-            raise lpsql.exceptions.IDNotFound()
 
         result["group"] = result.pop("class")
         return JSONResponse(
@@ -38,6 +42,10 @@ async def get_basic_info(
         )
     except lpsql.exceptions.IDNotFound as e:
         return parser.form_error(e, "ID not found", 404)
+    except lpsql.exceptions.EmailNotFound as e:
+        return parser.form_error(e, "email not found", 404)
+    except lpsql.exceptions.EntryNotFound as e:
+        return parser.form_error(e, "login not found", 404)
     except Exception as e:
         return parser.form_error(e)
 

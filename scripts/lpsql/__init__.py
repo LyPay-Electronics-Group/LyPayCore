@@ -9,7 +9,7 @@ from scripts.unix import unix
 class Tables:
     MAIN = ['users', 'stores', 'shopkeepers', 'history', 'corporation', 'auction',
             'promo', 'items', 'store_form_link', 'cheques', 'access_codes_guest',
-            'access_codes_main', "mst_test3"]
+            'access_codes_main', "fps", "mst_test3"]
 
     FIREWALL = ['main', 'stores', 'admins']
 
@@ -259,7 +259,7 @@ class DataBase:
             return res
 
 
-    def update(self, table: str, check_column: str, check_mean: str | int, update_column: str, update_mean: str | int | None):
+    def update(self, table: str, check_column: str, check_mean: str | int, update_column: str, update_mean: str | int | float | None):
         """
         [UNIVERSAL]
         Обновляет указанное значение, выполняя поиск по check_column и check_mean.

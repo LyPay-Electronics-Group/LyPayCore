@@ -1,4 +1,7 @@
-﻿from os import getcwd as cwd
+﻿from os import getcwd as cwd, getenv
+from dotenv import load_dotenv as load_dotenvy
+
+load_dotenvy(".envy")
 
 
 class PATHS:
@@ -36,11 +39,13 @@ class IDGEN:
     STORE_ID_LENGTH = 3
     ITEM_ID_LENGTH = 7
     CHEQUE_ID_LENGTH = 6
+    FPS_ID_LENGTH = 16
 
     USER_ID = "{year}{_}"
     STORE_ID = "{_}"
     ITEM_ID = "i{storeID}_{_}"
     CHEQUE_ID = "c{storeID}_{_}"
+    FPS_ID = "{_}"
 
 
 class EMAIL:
@@ -60,14 +65,17 @@ class EMAIL:
     SENDER = "LyPay Electronics"
 
 
-IP_CONFIG_REFRESH_DELTA = 10
-IP_CONFIG_FILE = "tokens.json"
+class TOKENIZER:
+    CONFIG_REFRESH_DELTA = 10
+    CONFIG_FILE = "tokens.json"
+
+    PUBLIC_LIST = tuple(map(lambda t: t.strip(), getenv("LYPAY_PUBLIC_TOKENS").split(',')))
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
 CHUNK_SIZE = 1024
 
 
-VERSION = "v2.5c"
-NAME = "FullStack"
-BUILD = 23
+VERSION = "v2.6c"
+NAME = "Public API"
+BUILD = 24

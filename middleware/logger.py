@@ -11,9 +11,9 @@ c_init(autoreset=True)
 class CustomLog(BaseHTTPMiddleware):
     max_client_length = 15
     max_token_length = 9
-    max_message_length = 95
+    max_message_length = 90
 
-    def __init__(self, app: ASGIApp, app_logger: Logger, blacklist: list[str]):
+    def __init__(self, app: ASGIApp, app_logger: Logger, blacklist: tuple[str]):
         super().__init__(app)
         self.app_logger = app_logger
         self.blacklist = blacklist

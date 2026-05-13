@@ -100,6 +100,6 @@ async def check_link(
             status_code=200
         )
     except lpsql.exceptions.EmailNotFound as e:
-        return parser.form_error(e, "email not found", 404)
+        return parser.form_error(e, "link email not found", 404)
     except Exception as e:
         return parser.form_error(e)
