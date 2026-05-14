@@ -78,4 +78,4 @@ CHUNK_SIZE = 1024
 
 VERSION = "v2.6c"
 NAME = "Public API"
-BUILD = 24
+BUILD = 25
