@@ -42,7 +42,7 @@ async def send(
 
             await mailer.send_async(path=EMAIL.PATHS.MAIN, recipient=email,
                                     subject=EMAIL.SUBJECTS.MAIN, keys=keys,
-                                    files=[EMAIL.PATHS.USER_MANUAL])
+                                    files=None)     # [EMAIL.PATHS.USER_MANUAL]
 
             db.manual(f"DELETE FROM access_codes_main WHERE email like \"{email}\"")
             db.insert(
@@ -66,7 +66,7 @@ async def send(
 
             await mailer.send_async(path=EMAIL.PATHS.GUEST, recipient=email,
                                     subject=EMAIL.SUBJECTS.GUEST, keys=keys,
-                                    files=[EMAIL.PATHS.USER_MANUAL])
+                                    files=None)     # [EMAIL.PATHS.USER_MANUAL]
 
             db.manual(f"DELETE FROM access_codes_guest WHERE email like \"{email}\"")
             db.insert(
@@ -89,7 +89,7 @@ async def send(
 
             await mailer.send_async(path=EMAIL.PATHS.STORE, recipient=email,
                                     subject=EMAIL.SUBJECTS.SHOPKEEPER, keys=keys,
-                                    files=[EMAIL.PATHS.STORE_MANUAL])
+                                    files=None)     # [EMAIL.PATHS.STORE_MANUAL]
 
             db.insert(
                 "store_form_link",
