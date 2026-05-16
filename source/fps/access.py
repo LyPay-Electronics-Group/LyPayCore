@@ -13,7 +13,7 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 idgen = IDGenerator(db)
 
 default_description = """
-FPS-<=>, созданный {author}.
+FPS-линк, созданный {author}
 """[1:-1]
 
 @router.get("/new")
