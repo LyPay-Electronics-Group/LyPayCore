@@ -15,7 +15,7 @@ async def check_agent_status(
         ID_in:  str = None,
         ID_out: str = None,
         amount: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID_in is None or ID_out is None or amount is None:
         return parser.form_error_bad_parsing()

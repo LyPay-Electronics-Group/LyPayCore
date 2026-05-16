@@ -13,7 +13,7 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 @router.get("/get/base")
 async def get_basic_info(
         ID: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -36,7 +36,7 @@ async def get_basic_info(
 @router.get("/get/shopkeeper")
 async def get_by_shopkeeper(
         ID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -58,7 +58,7 @@ async def get_by_shopkeeper(
 
 @router.get("/all/stores")
 async def get_all_stores_ids(
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
         return JSONResponse(
@@ -71,7 +71,7 @@ async def get_all_stores_ids(
 
 @router.get("/all/shopkeepers")
 async def get_all_shopkeepers(
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
         return JSONResponse(
@@ -85,7 +85,7 @@ async def get_all_shopkeepers(
 @router.get("/link")
 async def check_link(
         link: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if link is None:
         return parser.form_error_bad_parsing()

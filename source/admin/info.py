@@ -17,7 +17,7 @@ platform_name = get_platform_name()
 
 @router.get("/machine")
 async def get_machine_info(
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
         python_processes = list()
@@ -48,7 +48,7 @@ async def get_machine_info(
 async def get_db_info(
         db_type: str = None,
         query:   str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if query is None or db_type is None or db_type not in ('main', 'fw'):
         return parser.form_error_bad_parsing()

@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
 from scripts.token_validator import token_validate_factory as TVF
-from data.config import PATHS
+from data.config import PATHS, TOKENIZER
 
 
 router = APIRouter()
@@ -14,7 +14,7 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
 async def info(
         route: str,
         ID:    str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()

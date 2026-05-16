@@ -15,7 +15,7 @@ firewall4 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FI
 @router.get("/list")
 async def access_list(
         storeID: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if storeID is None:
         return parser.form_error_bad_parsing()
@@ -42,7 +42,7 @@ async def access_list(
 async def access_add(
         storeID: str = None,
         userID:  int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if storeID is None or userID is None:
         return parser.form_error_bad_parsing()
@@ -83,7 +83,7 @@ async def access_add(
 async def remove_access(
         storeID: str = None,
         userID:  int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if storeID is None or userID is None:
         return parser.form_error_bad_parsing()

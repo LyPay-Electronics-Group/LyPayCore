@@ -17,7 +17,7 @@ idgen = IDGenerator(db)
 async def pay(
         fpsID:  str = None,
         userID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if fpsID is None or userID is None:
         return parser.form_error_bad_parsing()

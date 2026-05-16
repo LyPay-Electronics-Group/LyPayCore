@@ -15,7 +15,7 @@ async def get_basic_info(
         ID:    int = None,
         email: str = None,
         login: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None and email is None and login is None:
         return parser.form_error_bad_parsing()
@@ -52,7 +52,7 @@ async def get_basic_info(
 
 @router.get("/all")
 async def get_all_users_ids(
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
         return JSONResponse(
@@ -66,7 +66,7 @@ async def get_all_users_ids(
 @router.get("/code")
 async def check_code(
         code: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if code is None:
         return parser.form_error_bad_parsing()

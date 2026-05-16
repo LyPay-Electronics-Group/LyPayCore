@@ -17,7 +17,7 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 async def get_avatar(
         ID:   str = None,
         unix: float = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -59,7 +59,7 @@ async def get_avatar(
 async def update_avatar(
         avatar: UploadFile,
         ID:     str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -85,7 +85,7 @@ async def update_avatar(
 @router.get("/remove")
 async def remove_avatar(
         ID: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()

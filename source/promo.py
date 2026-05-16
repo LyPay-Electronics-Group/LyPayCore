@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
 from scripts.token_validator import token_validate_factory as TVF
-from data.config import PATHS
+from data.config import PATHS, TOKENIZER
 
 
 router = APIRouter()
@@ -12,7 +12,7 @@ db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 
 @router.get("/all")
 async def get_all(
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     try:
         return JSONResponse(
@@ -26,7 +26,7 @@ async def get_all(
 @router.get("/get")
 async def get(
         ID: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -51,7 +51,7 @@ async def add(
         ID:     str = None,
         value:  str = None,
         author: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if ID is None or value is None or author is None:
         return parser.form_error_bad_parsing()
@@ -79,7 +79,7 @@ async def edit(
         value:  str = None,
         author: str = None,
         active: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if ID is None or not any((value, author, active)):
         return parser.form_error_bad_parsing()

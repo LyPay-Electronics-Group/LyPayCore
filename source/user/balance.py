@@ -13,7 +13,7 @@ db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
 @router.get("/balance")
 async def balance(
         ID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -34,7 +34,7 @@ async def deposit(
         ID: int = None,
         value: int = None,
         agent_id: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None or value is None:
         return parser.form_error_bad_parsing()
@@ -57,7 +57,7 @@ async def transfer(
         ID_in: str = None,
         amount: int = None,
         mode: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID_out is None or ID_in is None or amount is None or mode is None or mode not in ('t', 'b'):
         return parser.form_error_bad_parsing()

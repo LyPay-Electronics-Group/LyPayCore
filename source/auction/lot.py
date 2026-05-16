@@ -17,7 +17,7 @@ async def create_new_lot(
         name:      str = None,
         price:     int = None,
         auctionID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if name is None or price is None or auctionID is None:
         return parser.form_error_bad_parsing()
@@ -44,7 +44,7 @@ async def create_new_lot(
 @router.get("/confirm")
 async def confirm_lot(
         lotID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if lotID is None:
         return parser.form_error_bad_parsing()
