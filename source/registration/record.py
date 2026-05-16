@@ -37,6 +37,9 @@ async def new_user(
     if not censor.check_login(login):
         return parser.form_error(AttributeError(), "bad censor flag: login", 406)
 
+    if login in db.searchall("users", "login"):
+        return parser.form_error(NameError(), "login already exists", 406)
+
     try:
         if owner_flag[-5:] == 'owner':
             db.manual(f"DELETE FROM access_codes_main WHERE email like \"{email}\"")
