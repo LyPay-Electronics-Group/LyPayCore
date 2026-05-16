@@ -18,7 +18,7 @@ idgen = IDGenerator(db)
 @router.get("/get")
 async def get_cheque(
         chequeID: str = None,
-        _ = D(TVF(*cfg.cfg.TOKENIZER.PUBLIC_LIST))
+        _ = D(TVF(*cfg.TOKENIZER.PUBLIC_LIST))
 ):
     if chequeID is None:
         return parser.form_error_bad_parsing()
