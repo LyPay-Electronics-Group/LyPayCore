@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser
+from scripts import lpsql, parser, censor
 from scripts.token_validator import token_validate_factory as TVF
 from scripts.idgen import IDGenerator
 from scripts.unix import unix
@@ -26,6 +26,11 @@ async def new(
     if amount is None or author is None:
         return parser.form_error_bad_parsing()
 
+    if description is None:
+        description = default_description.format(author=author)
+    elif not censor.censor(description):
+        return parser.form_error(AttributeError(), "bad censor flag: FPS desc", 406)
+
     if len(author) != 3:
         try:
             author = int(author)
@@ -38,8 +43,6 @@ async def new(
     if author_search is None:
         return parser.form_error(lpsql.exceptions.IDNotFound(), "ID not found", 404)
 
-    if description is None:
-        description = default_description.format(author=author)
     try:
         ID = await idgen.fpsID()
         db.insert("fps", [

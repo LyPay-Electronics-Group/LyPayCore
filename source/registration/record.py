@@ -91,7 +91,7 @@ async def new_store(
     if not censor.check_store_name(name):
         return parser.form_error(AttributeError(), "bad censor flag: store name", 406)
     if not censor.check_store_description(description):
-        return parser.form_error(AttributeError(), "bad censor flag: desc", 406)
+        return parser.form_error(AttributeError(), "bad censor flag: store desc", 406)
 
     try:
         db.manual(f"DELETE FROM store_form_link WHERE email like \"{email}\"")
