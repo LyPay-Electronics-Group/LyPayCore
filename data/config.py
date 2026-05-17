@@ -74,7 +74,7 @@ class TOKENIZER:
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
-CHUNK_SIZE = 1024
+CHUNK_SIZE = 16384
 
 
 VERSION = "v2.6c"
