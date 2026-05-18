@@ -5,8 +5,8 @@ load_dotenvy(".envy")
 
 
 class PATHS:
-    DATA = cwd() + '/data/'
-
+    CWD = cwd() + '/'
+    DATA = CWD + 'data/'
     QR = DATA + 'QR/'
 
     STORES = DATA + 'stores/'

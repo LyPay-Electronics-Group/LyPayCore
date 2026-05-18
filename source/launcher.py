@@ -1,5 +1,7 @@
 from os import mkdir, listdir, getenv, getcwd as cwd, remove
 from os.path import exists
+from subprocess import run
+
 from platform import system as get_platform_name
 from dotenv import load_dotenv as load_dotenvy
 
@@ -421,3 +423,32 @@ class Launcher:
         else:
             self.error_handle("extra.argument", "ArgumentError",
                               f"You have to assiciate more than 1 argument! Look here for more info: " + F.YELLOW + "help")
+
+
+    def launch(self):
+        if get_platform_name() == 'Linux':
+            startup = (
+                'bash -c',
+                f'cd "{cfg.PATHS.CWD}";',
+                'source ./.venv/bin/activate;',
+                'clear;',
+                'python launcher.py'
+            )
+            try:
+                run(['tmux', 'new-window', '-n', 'core', *startup], check=True)
+                self.success_handle("launch.startup", "Successfully started the server")
+            except Exception as e:
+                self.error_handle("launch.startup", f"Failed to start a process: {e}")
+        else:
+            print("unsupported platform (for now)")
+
+
+    def shutdown(self):
+        if get_platform_name() == 'Linux':
+            try:
+                run(['tmux', 'send-keys', '-t', 'core', 'C-c'], check=True)
+                self.success_handle("launch.startup", "Successfully started the server")
+            except Exception as e:
+                self.error_handle("launch.startup", f"Failed to shutdown a process: {e}")
+        else:
+            print("unsupported platform (for now)")
