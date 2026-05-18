@@ -91,7 +91,7 @@ class Launcher:
             print(F.LIGHTGREEN_EX + S.NORMAL + "OK")
 
         print(F.LIGHTBLACK_EX + S.BRIGHT + "Reading ENVY config...", end=' ')
-        found = load_dotenvy()
+        found = load_dotenvy(".envy")
         if not found:
             print(F.LIGHTRED_EX + "FAILED")
             print(F.LIGHTBLACK_EX + S.BRIGHT + " > trying to find already loaded system variables...", end=' ')
