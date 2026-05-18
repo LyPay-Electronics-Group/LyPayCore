@@ -428,14 +428,13 @@ class Launcher:
     def launch(self):
         if get_platform_name() == 'Linux':
             startup = (
-                'bash -c',
-                f'cd "{cfg.PATHS.CWD}";',
-                'source ./.venv/bin/activate;',
-                'clear;',
+                f'cd "{cfg.PATHS.CWD}";'
+                'source ./.venv/bin/activate;'
+                'clear;'
                 'python startup.py'
             )
             try:
-                run(['tmux', 'new-window', '-n', 'core', *startup], check=True)
+                run(['tmux', 'new-window', '-n', 'core', 'bash', '-c', startup], check=True)
                 self.success_handle("launch.startup", "Successfully started the server")
             except Exception as e:
                 self.error_handle("launch.startup", f"Failed to start a process: {e}")
