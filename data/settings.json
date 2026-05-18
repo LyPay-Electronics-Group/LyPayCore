@@ -1,0 +1,13 @@
+{
+    "launch": false,
+    "auto_restart_cmd": null,
+    "auction": false,
+    "user_can_deposit": false,
+    "user_can_transfer": false,
+    "user_can_use_promo": false,
+    "user_can_register_via_linking": false,
+    "store_can_register": true,
+    "store_can_send_ad": false,
+    "show_unknown_errors": true,
+    "last_launch": 0
+}
