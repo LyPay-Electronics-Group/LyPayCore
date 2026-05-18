@@ -446,8 +446,8 @@ class Launcher:
         if get_platform_name() == 'Linux':
             try:
                 run(['tmux', 'send-keys', '-t', 'core', 'C-c'], check=True)
-                self.success_handle("launch.startup", "Successfully started the server")
+                self.success_handle("shutdown.shutdown", "Successfully turned the server off")
             except Exception as e:
-                self.error_handle("launch.startup", f"Failed to shutdown a process: {e}")
+                self.error_handle("shutdown.shutdown", f"Failed to shutdown a process: {e}")
         else:
             print("unsupported platform (for now)")
