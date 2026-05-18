@@ -232,8 +232,8 @@ class Launcher:
                     self.fw.manual(f"DELETE FROM {route}")
                     self.success_handle("firewall4.close", "Success")
                 elif command == '-list':
-                    print('whitelist:', *self.fw.search(route, "access", 1, True))
-                    print('blacklist:', *self.fw.search(route, "access", 0, True))
+                    print('whitelist:', *tuple(map(lambda r: r["ID"], self.fw.search(route, "access", 1, True))))
+                    print('blacklist:', *tuple(map(lambda r: r["ID"], self.fw.search(route, "access", 0, True))))
                 else:
                     self.error_handle("firewall4.argument", "ArgumentError", f"Can't parse provided arguments {args}")
             except:
