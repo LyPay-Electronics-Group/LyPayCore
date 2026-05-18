@@ -10,8 +10,8 @@ from data import config as cfg
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
-firewall4 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
+db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
+firewall4 = lpsql.DataBase(cfg.PATHS.FIREWALL_DB, lpsql.Tables.FIREWALL)
 platform_name = get_platform_name()
 
 

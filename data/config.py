@@ -20,6 +20,9 @@ class PATHS:
 
     LAUNCH_SETTINGS = DATA + 'settings.json'
 
+    MAIN_DB = DATA + "lypay_database.db"
+    FIREWALL_DB = DATA + "lypay_firewall.db"
+
     all = (DATA, QR, STORES, EMAIL, STORES_ITEMS, STORES_AVATARS)
 
 

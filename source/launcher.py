@@ -58,8 +58,8 @@ class Launcher:
 
         print(F.LIGHTBLACK_EX + S.BRIGHT + "Checking the main database...", end=' ')
         try:
-            self.db = lpsql.DataBase("lypay_database.db", lpsql.Tables.MAIN)
-            self.fw = lpsql.DataBase("lypay_firewall.db", lpsql.Tables.FIREWALL)
+            self.db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
+            self.fw = lpsql.DataBase(cfg.PATHS.FIREWALL_DB, lpsql.Tables.FIREWALL)
             length = len(self.db.searchall("users", "ID"))
             print(F.LIGHTGREEN_EX + f"{length} user{'s' if length > 1 else ''} found")
         except Exception as e:
