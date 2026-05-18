@@ -399,6 +399,8 @@ class Launcher:
                             self.fw.manual(f"DELETE FROM main WHERE ID = {ID}")
                             if exists(cfg.PATHS.QR + f"{ID}.png"):
                                 remove(cfg.PATHS.QR + f"{ID}.png")
+                            if exists(cfg.PATHS.USERS_AVATARS + f"{ID}.jpg"):
+                                remove(cfg.PATHS.USERS_AVATARS + f"{ID}.jpg")
                             self.success_handle("extra.delete", "Successfully deleted a user")
                         else:
                             self.error_handle("extra.delete", "IDNotFoundError", "User does not exist")
@@ -408,6 +410,8 @@ class Launcher:
                                 self.fw.manual(f"DELETE FROM stores WHERE ID = {shopkeeper["userID"]}")
                             self.db.manual(f"DELETE FROM stores WHERE ID LIKE \"{ID}\"")
                             self.db.manual(f"DELETE FROM shopkeepers WHERE storeID LIKE \"{ID}\"")
+                            if exists(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"):
+                                remove(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
                             self.success_handle("extra.delete", "Successfully deleted a store")
                         else:
                             self.error_handle("extra.delete", "IDNotFoundError", "Store does not exist")
