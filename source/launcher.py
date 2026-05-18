@@ -432,7 +432,7 @@ class Launcher:
                 f'cd "{cfg.PATHS.CWD}";',
                 'source ./.venv/bin/activate;',
                 'clear;',
-                'python launcher.py'
+                'python startup.py'
             )
             try:
                 run(['tmux', 'new-window', '-n', 'core', *startup], check=True)
