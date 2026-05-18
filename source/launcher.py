@@ -1,4 +1,4 @@
-from os import mkdir, listdir, getenv, getcwd as cwd
+from os import mkdir, listdir, getenv, getcwd as cwd, remove
 from os.path import exists
 from platform import system as get_platform_name
 from dotenv import load_dotenv as load_dotenvy
@@ -26,17 +26,16 @@ class Launcher:
 
     def __init__(self):
         self.commands = {
-            'exit': [''],
-            'help (h)': [''],
-            'settings': ['set', 'read', 'current', 'update'],
-            'launch': [''],
-            'shutdown': [''],
-            'firewall4 (fw4)': [
-                '<route> -read <ID>', '<route> -addw <ID> [...]', '<route> -removew <ID>', '<route> -addb <ID> [...]',
-                '<route> -removeb <ID>', '<route> -close', '<route> -list'
-            ],
-            'extra': ['-store <hostID> [<ID>]', '-user <ID> <login> <password> <name>_<surname> <class> <email>'],
-            '<default>': ['<sql-query>']
+            'exit':            [''],
+            'help (h)':        [''],
+            'settings':        ['set', 'read', 'current', 'update'],
+            'launch':          [''],
+            'shutdown':        [''],
+            'firewall4 (fw4)': ['<route> -read <ID>', '<route> -addw <ID> [...]', '<route> -removew <ID>',
+                                '<route> -addb <ID> [...]', '<route> -removeb <ID>', '<route> -close', '<route> -list'],
+            'extra':           ['-user <ID> <login> <password> <name>_<surname> <class> <email>',
+                                '-store <hostID> [<ID>]', '-delete <user (u) | store (s)> <ID>'],
+            '<default>':       ['<sql-query>']
         }
         self.settings_array = j2.fromfile(cfg.PATHS.LAUNCH_SETTINGS)
 
@@ -95,18 +94,12 @@ class Launcher:
             print(F.LIGHTRED_EX + "FAILED")
             print(F.LIGHTBLACK_EX + S.BRIGHT + " > trying to find already loaded system variables...", end=' ')
             loaded_env = {
-                getenv("LYPAY_HOST"),
-                getenv("LYPAY_PORT"),
-                getenv("LYPAY_EMAIL_MAIL"),
-                getenv("LYPAY_EMAIL_HOST"),
-                getenv("LYPAY_EMAIL_PORT"),
-                getenv("LYPAY_EMAIL_PASSWORD"),
-                getenv("LYPAY_PUBLIC_TOKENS"),
+                getenv("LYPAY_HOST"), getenv("LYPAY_PORT"), getenv("LYPAY_EMAIL_MAIL"), getenv("LYPAY_EMAIL_HOST"),
+                getenv("LYPAY_EMAIL_PORT"), getenv("LYPAY_EMAIL_PASSWORD"), getenv("LYPAY_PUBLIC_TOKENS"),
                 getenv("LYPAY_ADMIN_TOKENS")
             }
             if None in loaded_env:
-                print(F.LIGHTRED_EX + "FAILED",
-                      "Please, check the root directory and manually configure .envy, then restart", sep='\n')
+                print(F.LIGHTRED_EX + "FAILED", "Please, check the root directory and manually configure .envy, then restart", sep='\n')
                 input(F.LIGHTBLACK_EX + S.BRIGHT + "> press 'enter' to exit <")
                 exit()
             else:
@@ -125,7 +118,6 @@ class Launcher:
         print((F.LIGHTRED_EX if time_delta_d > 1 else F.LIGHTBLACK_EX) + time_string)
 
         self.update_settings("launch", True)
-        # self.update_settings("launch_stamp", f"lls_{i_to_id(int(unix() * 1e6), 10)}")
 
     def close(self):
         self.update_settings("last_launch", int(unix()))
@@ -162,6 +154,7 @@ class Launcher:
             print(S.DIM + F.GREEN + f"[{command}]" + F.LIGHTBLACK_EX + f"({info})")
         self.last_success = command
 
+
     def help(self):
         print(F.LIGHTBLACK_EX + S.BRIGHT + "HELP page")
         print(F.LIGHTBLUE_EX + "Available commands:")
@@ -169,6 +162,56 @@ class Launcher:
             print(F.YELLOW + command, end='')
             print(': ', end='')
             print(F.GREEN + ', '.join(self.commands[command]))
+
+
+    def settings(self, *args):
+        if args[0] == 'help':
+            # legacy todo: help page
+            pass
+        elif args[0] == 'current' or args[0] == 'curr' or args[0] == 'c':
+            print(j2.to_(self.settings_array).replace('\n\t"', '\n  "'))
+        elif args[0] == 'read' or args[0] == 'r':
+            print(j2.to_(j2.fromfile(cfg.PATHS.LAUNCH_SETTINGS)).replace('\n\t"', '\n  "'))
+        elif args[0] == 'set':
+            current = j2.fromfile(cfg.PATHS.LAUNCH_SETTINGS)
+            try:
+                if args[1] in current.keys():
+                    value = ' '.join(args[2:])
+                    if value == 'false':
+                        c = False
+                    elif value == 'true':
+                        c = True
+                    elif value == 'none' or value == 'null':
+                        c = None
+                    else:
+                        try:
+                            c = int(value)
+                        except:
+                            try:
+                                c = eval(value)
+                            except:
+                                self.error_handle("settings.set.-1", "ParseError", f"Can't parse '{value}'")
+                                return
+
+                    upd = self.update_settings(args[1], c)
+                    if upd == 1:
+                        self.success_handle("settings.set.1", "Success")
+                        if args[1] == 'auction':
+                            print(F.YELLOW + S.BRIGHT + "Don't forget to update LPSB's avatar and name!")
+                    elif upd == -1:
+                        self.error_handle("settings.set.-1", "KeyError", f"Type of the new value must be {type(self.settings_array[args[1]])}")
+                    else:
+                        self.error_handle("settings.set.0", "ValueError", f"Type of the new value must be {type(self.settings_array[args[1]])}")
+                else:
+                    self.error_handle("settings.notFound", "SettingError", f"There is no setting '{args[1]}'!")
+            except IndexError:
+                self.error_handle("settings.argument", "ArgumentError", "You need to specify an argument for this command!")
+        elif args[0] == 'update':
+            self.settings_array = j2.fromfile(cfg.PATHS.LAUNCH_SETTINGS)
+            self.success_handle("settings.update", "Success")
+        else:
+            self.error_handle("settings.argument", "ArgumentError", f"There is no argument '{args[0]}' associated with 'settings'!")
+
 
     def firewall(self, *args):
         if args[0] == 'help':
@@ -187,8 +230,8 @@ class Launcher:
                     self.fw.manual(f"DELETE FROM {route}")
                     self.success_handle("firewall4.close", "Success")
                 elif command == '-list':
-                    print('whitelist:', *self.fw.search(route, "access", 1))
-                    print('blacklist:', *self.fw.search(route, "access", 0))
+                    print('whitelist:', *self.fw.search(route, "access", 1, True))
+                    print('blacklist:', *self.fw.search(route, "access", 0, True))
                 else:
                     self.error_handle("firewall4.argument", "ArgumentError", f"Can't parse provided arguments {args}")
             except:
@@ -222,7 +265,7 @@ class Launcher:
                 ])
                 self.success_handle("firewall4.add_white", "Success")
             elif command == '-removew':
-                self.fw.manual(f"DELETE FROM {route} where ID = {ID} AND access = 1")
+                self.fw.manual(f"DELETE FROM {route} WHERE ID = {ID} AND access = 1")
                 self.success_handle("firewall4.remove_white", "Success")
             elif command == '-addb':
                 self.fw.insert(route, [
@@ -233,13 +276,14 @@ class Launcher:
                 ])
                 self.success_handle("firewall4.add_black", "Success")
             elif command == '-removeb':
-                self.fw.manual(f"DELETE FROM {route} where ID = {ID} AND access = 0")
+                self.fw.manual(f"DELETE FROM {route} WHERE ID = {ID} AND access = 0")
                 self.success_handle("firewall4.remove_black", "Success")
             elif command == '-read':
                 self.sql(f"SELECT * FROM {route}", 'fw')
                 self.success_handle("firewall4.read", "Success")
             else:
                 self.error_handle("firewall4.argument", "ArgumentError", f"Can't parse provided arguments {args}")
+
 
     def sql(self, arg: str, db: str = 'main'):
         try:
@@ -268,6 +312,7 @@ class Launcher:
         except Exception as e:
             if self.settings_array["show_unknown_errors"]:
                 self.error_handle("search.sql", "Unknown", "Unknown error: " + e.__str__())
+
 
     def extra(self, *args):
         if args[0] == 'help':
@@ -308,6 +353,7 @@ class Launcher:
                     self.success_handle("extra.store", "Successfully added a store")
                 except:
                     self.error_handle("extra.argument", "ArgumentError", f"Can't parse the following arguments: {args[1:]}")
+
             elif args[0] == '-user':
                 try:
                     ID = int(args[1])
@@ -340,9 +386,38 @@ class Launcher:
                 except:
                     self.error_handle("extra.argument", "ArgumentError", f"Can't parse the following arguments: {args[1:]}")
 
+            elif args[0] == '-delete':
+                try:
+                    route = args[1]
+                    ID = args[2]
+
+                    if route == 'user' or route == 'u':
+                        if self.db.search("users", "ID", ID) is not None:
+                            self.db.manual(f"DELETE FROM users WHERE ID = {ID}")
+                            self.fw.manual(f"DELETE FROM main WHERE ID = {ID}")
+                            if exists(cfg.PATHS.QR + f"{ID}.png"):
+                                remove(cfg.PATHS.QR + f"{ID}.png")
+                            self.success_handle("extra.delete", "Successfully deleted a user")
+                        else:
+                            self.error_handle("extra.delete", "IDNotFoundError", "User does not exist")
+                    elif route == 'store' or route == 's':
+                        if self.db.search("stores", "ID", ID) is not None:
+                            for shopkeeper in self.db.search("shopkeepers", "storeID", ID, True):
+                                self.fw.manual(f"DELETE FROM stores WHERE ID = {shopkeeper["userID"]}")
+                            self.db.manual(f"DELETE FROM stores WHERE ID LIKE \"{ID}\"")
+                            self.db.manual(f"DELETE FROM shopkeepers WHERE storeID LIKE \"{ID}\"")
+                            self.success_handle("extra.delete", "Successfully deleted a store")
+                        else:
+                            self.error_handle("extra.delete", "IDNotFoundError", "Store does not exist")
+                    else:
+                        self.error_handle("extra.argument", "ArgumentError", f"Can't parse provided route: {route}")
+                except:
+                    self.error_handle("extra.argument", "ArgumentError", f"Can't parse the following arguments: {args[1:]}")
+
             else:
                 self.error_handle("extra.argument", "ArgumentError",
                                   f"There is no argument '{args[0]}' associated with 'extra'!")
+
         else:
             self.error_handle("extra.argument", "ArgumentError",
                               f"You have to assiciate more than 1 argument! Look here for more info: " + F.YELLOW + "help")
