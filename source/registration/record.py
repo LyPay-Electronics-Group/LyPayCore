@@ -36,6 +36,8 @@ async def new_user(
         return parser.form_error(AttributeError(), "bad censor flag: user name", 406)
     if not censor.check_login(login):
         return parser.form_error(AttributeError(), "bad censor flag: login", 406)
+    if not await parser.get_setting("user_can_register"):
+        return parser.form_error_flag_blocked()
 
     if login in db.searchall("users", "login"):
         return parser.form_error(NameError(), "login already exists", 406)
