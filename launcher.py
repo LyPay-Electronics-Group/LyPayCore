@@ -55,7 +55,7 @@ while True:
     #
     else:
         try:
-            launcher.sql(raw_cmd)
+            launcher.sql(' '.join(raw_cmd))
         except:
             if launcher.settings_array["show_unknown_errors"]:
                 launcher.error_handle("un_exp_0.argument", "KeyError", "Unknown command, try: " + F.YELLOW + "help")
