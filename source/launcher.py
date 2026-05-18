@@ -361,7 +361,7 @@ class Launcher:
                     ID = int(args[1])
                     login = args[2]
                     password = args[3]
-                    name = args[4].replace('_', ' ')
+                    name = args[4].replace('_', ' ').title()
                     group = args[5]
                     email = args[6]
 
