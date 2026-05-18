@@ -66,13 +66,14 @@ async def get_all_users_ids(
 @router.get("/code")
 async def check_code(
         code: str = None,
+        route: str = "main",
         _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
-    if code is None:
+    if code is None or route not in ('main', 'guest'):
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("access_codes_main", "code", code)
+        search_result = db.search(f"access_codes_{route}", "code", code)
         if search_result is None:
             raise lpsql.exceptions.EmailNotFound
 
