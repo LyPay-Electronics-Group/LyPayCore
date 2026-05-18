@@ -19,6 +19,8 @@ async def check_agent_status(
 ):
     if ID_in is None or ID_out is None or amount is None:
         return parser.form_error_bad_parsing()
+    if not await parser.get_setting("auction"):
+        return parser.form_error_flag_blocked()
 
     try:
         db.transfer(ID_out, ID_in, amount)

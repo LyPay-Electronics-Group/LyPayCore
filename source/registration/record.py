@@ -85,6 +85,9 @@ async def new_store(
 ):
     if any(t is None for t in (name, storeID, hostID, email)):
         return parser.form_error_bad_parsing()
+    if not await parser.get_setting("store_can_register"):
+        return parser.form_error_flag_blocked()
+
     if description is None:
         description = ""
 

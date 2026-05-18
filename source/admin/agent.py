@@ -43,6 +43,8 @@ async def do_agent_deposit(
 ):
     if userID is None or amount is None or agentID is None:
         return parser.form_error_bad_parsing()
+    if not await parser.get_setting("user_can_deposit"):
+        return parser.form_error_flag_blocked()
 
     try:
         db.deposit(userID, amount, agentID)
