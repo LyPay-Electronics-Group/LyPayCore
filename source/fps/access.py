@@ -25,6 +25,8 @@ async def new(
 ):
     if amount is None or author is None:
         return parser.form_error_bad_parsing()
+    if amount < 0:
+        return parser.form_error(lpsql.exceptions.SubzeroInput(), "subzero input", 409)
 
     if description is None:
         description = default_description.format(author=author)
