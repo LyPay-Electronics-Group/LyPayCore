@@ -9,14 +9,14 @@ from data import config as cfg
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/check")
 async def check(
         ID: str = None,
         unix: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None or unix is None:
         return parser.form_error_bad_parsing()
@@ -35,7 +35,7 @@ async def check(
 @router.get("/get")
 async def get(
         ID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()

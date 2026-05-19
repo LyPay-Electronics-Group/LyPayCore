@@ -7,7 +7,7 @@ from scripts import parser, lpsql, mailer
 from scripts.token_validator import token_validate_factory as TVF
 from scripts.unix import unix
 from scripts.idgen import IDGenerator
-from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY, EMAIL
+from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY, EMAIL, TOKENIZER
 
 
 router = APIRouter()
@@ -21,7 +21,7 @@ async def send(
         route: str = None,
         code:  str = None,
         keys:  str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if any(t is None for t in (email, route)) or route not in ('main', 'guest', 'shopkeeper'):
         return parser.form_error_bad_parsing()
@@ -42,7 +42,7 @@ async def send(
 
             await mailer.send_async(path=EMAIL.PATHS.MAIN, recipient=email,
                                     subject=EMAIL.SUBJECTS.MAIN, keys=keys,
-                                    files=[EMAIL.PATHS.USER_MANUAL])
+                                    files=None)     # [EMAIL.PATHS.USER_MANUAL]
 
             db.manual(f"DELETE FROM access_codes_main WHERE email like \"{email}\"")
             db.insert(
@@ -66,7 +66,7 @@ async def send(
 
             await mailer.send_async(path=EMAIL.PATHS.GUEST, recipient=email,
                                     subject=EMAIL.SUBJECTS.GUEST, keys=keys,
-                                    files=[EMAIL.PATHS.USER_MANUAL])
+                                    files=None)     # [EMAIL.PATHS.USER_MANUAL]
 
             db.manual(f"DELETE FROM access_codes_guest WHERE email like \"{email}\"")
             db.insert(
@@ -89,7 +89,7 @@ async def send(
 
             await mailer.send_async(path=EMAIL.PATHS.STORE, recipient=email,
                                     subject=EMAIL.SUBJECTS.SHOPKEEPER, keys=keys,
-                                    files=[EMAIL.PATHS.STORE_MANUAL])
+                                    files=None)     # [EMAIL.PATHS.STORE_MANUAL]
 
             db.insert(
                 "store_form_link",
@@ -107,7 +107,7 @@ async def send(
 @router.get("/corp_record")
 async def check_corporation_record(
         email: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if email is None:
         return parser.form_error_bad_parsing()

@@ -7,14 +7,14 @@ from data import config as cfg
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
-firewall4 = lpsql.DataBase(cfg.PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
+db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
+firewall4 = lpsql.DataBase(cfg.PATHS.FIREWALL_DB, lpsql.Tables.FIREWALL)
 
 
 @router.get("/check")
 async def check_agent_status(
         userID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if userID is None:
         return parser.form_error_bad_parsing()
@@ -39,10 +39,12 @@ async def do_agent_deposit(
         userID:  int = None,
         amount:  int = None,
         agentID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if userID is None or amount is None or agentID is None:
         return parser.form_error_bad_parsing()
+    if not await parser.get_setting("user_can_deposit"):
+        return parser.form_error_flag_blocked()
 
     try:
         db.deposit(userID, amount, agentID)

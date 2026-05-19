@@ -10,14 +10,14 @@ from data import config as cfg
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/get")
 async def get_avatar(
         ID:   int = None,
         unix: float = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -59,7 +59,7 @@ async def get_avatar(
 async def update_avatar(
         avatar: UploadFile,
         ID:     int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()
@@ -85,7 +85,7 @@ async def update_avatar(
 @router.get("/remove")
 async def remove_avatar(
         ID: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
         return parser.form_error_bad_parsing()

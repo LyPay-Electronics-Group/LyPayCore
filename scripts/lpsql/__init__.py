@@ -21,7 +21,7 @@ class DataBase:
         :param tables: список имён таблиц в базе (можно выбрать один из списков в классе Tables)
         """
         self.tables = tables
-        self.path = path.strip().lower().replace('\\', '/')
+        self.path = path.strip().replace('\\', '/')
         try:
             with open(self.path) as _:
                 pass

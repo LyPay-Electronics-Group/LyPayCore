@@ -7,7 +7,7 @@ from scripts import parser, memory, lpsql, censor
 from scripts.token_validator import token_validate_factory as TVF
 from scripts.idgen import IDGenerator
 from scripts.unix import unix
-from data.config import PATHS
+from data.config import PATHS, TOKENIZER
 
 
 router = APIRouter()
@@ -25,7 +25,7 @@ async def new_user(
         email:      str = None,
         tag:        str = None,
         owner_flag: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if any(t is None for t in (name, login, password, group, email, owner_flag)) \
             or owner_flag not in ('tg_owner', 'tg_guest',
@@ -36,6 +36,11 @@ async def new_user(
         return parser.form_error(AttributeError(), "bad censor flag: user name", 406)
     if not censor.check_login(login):
         return parser.form_error(AttributeError(), "bad censor flag: login", 406)
+    if not await parser.get_setting("user_can_register"):
+        return parser.form_error_flag_blocked()
+
+    if login in db.searchall("users", "login"):
+        return parser.form_error(NameError(), "login already exists", 406)
 
     try:
         if owner_flag[-5:] == 'owner':
@@ -78,17 +83,20 @@ async def new_store(
         hostID:      int = None,
         email:       str = None,
         description: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if any(t is None for t in (name, storeID, hostID, email)):
         return parser.form_error_bad_parsing()
+    if not await parser.get_setting("store_can_register"):
+        return parser.form_error_flag_blocked()
+
     if description is None:
         description = ""
 
     if not censor.check_store_name(name):
         return parser.form_error(AttributeError(), "bad censor flag: store name", 406)
     if not censor.check_store_description(description):
-        return parser.form_error(AttributeError(), "bad censor flag: desc", 406)
+        return parser.form_error(AttributeError(), "bad censor flag: store desc", 406)
 
     try:
         db.manual(f"DELETE FROM store_form_link WHERE email like \"{email}\"")
@@ -133,7 +141,7 @@ async def new_store(
 
 @router.get("/store_id")
 async def get_available_store_id(
-        _ = D(TVF('default'))
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     try:
         return JSONResponse(

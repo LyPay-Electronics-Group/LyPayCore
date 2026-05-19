@@ -7,7 +7,7 @@ from data import config as cfg
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/transfer")
@@ -15,10 +15,12 @@ async def check_agent_status(
         ID_in:  str = None,
         ID_out: str = None,
         amount: int = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID_in is None or ID_out is None or amount is None:
         return parser.form_error_bad_parsing()
+    if not await parser.get_setting("auction"):
+        return parser.form_error_flag_blocked()
 
     try:
         db.transfer(ID_out, ID_in, amount)

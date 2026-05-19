@@ -5,8 +5,8 @@ load_dotenvy(".envy")
 
 
 class PATHS:
-    DATA = cwd() + '/data/'
-
+    CWD = cwd() + '/'
+    DATA = CWD + 'data/'
     QR = DATA + 'QR/'
 
     STORES = DATA + 'stores/'
@@ -19,6 +19,9 @@ class PATHS:
     USERS_AVATARS = USERS + 'avatars/'
 
     LAUNCH_SETTINGS = DATA + 'settings.json'
+
+    MAIN_DB = DATA + "lypay_database.db"
+    FIREWALL_DB = DATA + "lypay_firewall.db"
 
     all = (DATA, QR, STORES, EMAIL, STORES_ITEMS, STORES_AVATARS)
 
@@ -70,12 +73,13 @@ class TOKENIZER:
     CONFIG_FILE = "tokens.json"
 
     PUBLIC_LIST = tuple(map(lambda t: t.strip(), getenv("LYPAY_PUBLIC_TOKENS").split(',')))
+    ADMIN_LIST = tuple(map(lambda t: t.strip(), getenv("LYPAY_ADMIN_TOKENS").split(',')))
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
-CHUNK_SIZE = 1024
+CHUNK_SIZE = 16384
 
 
 VERSION = "v2.6c"
 NAME = "Public API"
-BUILD = 24
+BUILD = 25

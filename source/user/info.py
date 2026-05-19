@@ -7,7 +7,7 @@ from data import config as cfg
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
+db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/get")
@@ -15,7 +15,7 @@ async def get_basic_info(
         ID:    int = None,
         email: str = None,
         login: str = None,
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if ID is None and email is None and login is None:
         return parser.form_error_bad_parsing()
@@ -52,7 +52,7 @@ async def get_basic_info(
 
 @router.get("/all")
 async def get_all_users_ids(
-        _ = D(TVF('default'))
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
         return JSONResponse(
@@ -66,13 +66,14 @@ async def get_all_users_ids(
 @router.get("/code")
 async def check_code(
         code: str = None,
-        _ = D(TVF('default'))
+        route: str = "main",
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
-    if code is None:
+    if code is None or route not in ('main', 'guest'):
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("access_codes_main", "code", code)
+        search_result = db.search(f"access_codes_{route}", "code", code)
         if search_result is None:
             raise lpsql.exceptions.EmailNotFound
 
