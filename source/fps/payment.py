@@ -62,5 +62,7 @@ async def pay(
         )
     except lpsql.exceptions.IDNotFound as e:
         return parser.form_error(e, "ID not found", 404)
+    except lpsql.exceptions.NotEnoughBalance as e:
+        return parser.form_error(e, "not enough balance", 409)
     except Exception as e:
         return parser.form_error(e)
