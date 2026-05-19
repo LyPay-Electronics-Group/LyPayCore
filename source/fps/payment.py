@@ -26,11 +26,13 @@ async def pay(
         fps = db.search("fps", "ID", fpsID)
         if fps is None:
             raise lpsql.exceptions.IDNotFound
+        if fps["author_type"] == "u":
+            fps["author"] = int(fps["author"])
 
         db.transfer(userID, fps["author"], fps["amount"])
 
         current_unix = unix()
-        if type(fps["author"]) is str:
+        if fps["author_type"] == "s":
             itemID = await idgen.itemID(fps["author"])
             db.insert("items", [
                 itemID,
