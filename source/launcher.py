@@ -30,18 +30,19 @@ class Launcher:
         if not exists(cfg.PATHS.LAUNCH_SETTINGS):
             with open(cfg.PATHS.LAUNCH_SETTINGS, 'w') as f:
                 f.write(j2.to_({
-                    "launch": False,
-                    "auto_restart_cmd": None,
-                    "auction": False,
-                    "user_can_register": True,
+                    "launch":                        False,
+                    "auto_restart_cmd":              None,
+                    "auction":                       False,
+                    "user_can_register":             True,
                     "user_can_register_via_linking": False,
-                    "user_can_deposit": False,
-                    "user_can_transfer": False,
-                    "user_can_use_promo": False,
-                    "store_can_register": True,
-                    "store_can_send_ad": False,
-                    "show_unknown_errors": True,
-                    "last_launch": 0
+                    "user_can_deposit":              False,
+                    "user_can_transfer":             False,
+                    "user_can_use_promo":            False,
+                    "store_can_register":            True,
+                    "store_can_send_ad":             False,
+                    "store_show_placement_data":     False,
+                    "show_unknown_errors":           True,
+                    "last_launch":                   0
                 }))
 
         self.commands = {

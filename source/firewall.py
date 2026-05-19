@@ -2,12 +2,34 @@ from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.j2 import fromfile_async as j2_fromfile_async
 from scripts.token_validator import token_validate_factory as TVF
 from data.config import PATHS, TOKENIZER
 
 
 router = APIRouter()
 db = lpsql.DataBase(PATHS.DATA + "lypay_firewall.db", lpsql.Tables.FIREWALL)
+
+
+@router.get("/setting")
+async def get_setting(
+        key: str,
+        _ = D(TVF(*TOKENIZER.ADMIN_LIST))
+):
+    if key is None:
+        return parser.form_error_bad_parsing()
+    key = key.lower()
+    data = await j2_fromfile_async(PATHS.LAUNCH_SETTINGS)
+    if key not in data.keys():
+        return parser.form_error(NameError(), "invalid route", 404)
+
+    try:
+        return JSONResponse(
+            {'result': data[key]},
+            status_code=200
+        )
+    except Exception as e:
+        return parser.form_error(e)
 
 
 @router.get("/{route}")
