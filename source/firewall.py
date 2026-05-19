@@ -35,7 +35,7 @@ async def get_setting(
 @router.get("/{route}")
 async def info(
         route: str,
-        ID:    str = None,
+        ID:    int = None,
         _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
     if ID is None:
@@ -44,8 +44,8 @@ async def info(
         return parser.form_error(NameError(), "invalid route", 404)
 
     try:
-        search_result = db.search(route, "ID", int(ID))
-        if search_result is None:
+        search_result = db.search(route, "ID", ID, True)
+        if len(search_result) == 0:
             raise lpsql.exceptions.IDNotFound
 
         return JSONResponse(
