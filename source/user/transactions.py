@@ -96,3 +96,26 @@ async def deposit_list(
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
+
+
+@router.get("/cheque_list")
+async def cheque_list(
+        ID: int = None,
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
+):
+    if ID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        if db.search("users", "ID", ID) is None:
+            raise lpsql.exceptions.IDNotFound()
+        return JSONResponse(
+            {'result':
+                 db.manual(f"SELECT storeID, items, unix FROM cheques WHERE customer = {ID}")
+            },
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
