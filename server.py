@@ -37,4 +37,5 @@ app.add_middleware(Tokenizer)
 app.add_middleware(CustomLog, app_logger=logger, blacklist=(
     "/admin/machine",
     "/fw/main",
+    "/fps/status"
 ))
