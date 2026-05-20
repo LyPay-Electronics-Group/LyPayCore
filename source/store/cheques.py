@@ -106,6 +106,10 @@ async def create_cheque(
         )
     except lpsql.exceptions.IDNotFound as e:
         return parser.form_error(e, "ID not found", 404)
+    except lpsql.exceptions.SubzeroInput as e:
+        return parser.form_error(e, "subzero input", 409)
+    except lpsql.exceptions.NotEnoughBalance as e:
+        return parser.form_error(e, "not enough balance", 409)
     except Exception as e:
         return parser.form_error(e)
 
