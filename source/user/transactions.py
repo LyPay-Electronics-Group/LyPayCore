@@ -41,7 +41,7 @@ async def transfer(
         return parser.form_error(e)
 
 
-@router.get("/transfer/list")
+@router.get("/transfer_list")
 async def transfer_list(
         ID_out: int = None,
         ID_in: int = None,
@@ -56,7 +56,7 @@ async def transfer_list(
                 raise lpsql.exceptions.IDNotFound()
             return JSONResponse(
                 {'result':
-                     db.manual(f"SELECT id_in, value FROM history WHERE id_out LIKE \"u{ID_out}\" AND id_in LIKE \"u%\"")
+                     db.manual(f"SELECT id_in, value, unix FROM history WHERE id_out LIKE \"u{ID_out}\" AND id_in LIKE \"u%\"")
                 },
                 status_code=200
             )
@@ -65,10 +65,33 @@ async def transfer_list(
                 raise lpsql.exceptions.IDNotFound()
             return JSONResponse(
                 {'result':
-                     db.manual(f"SELECT id_out, value FROM history WHERE id_in LIKE \"u{ID_out}\" AND id_out LIKE \"u%\"")
+                     db.manual(f"SELECT id_out, value, unix FROM history WHERE id_in LIKE \"u{ID_out}\" AND id_out LIKE \"u%\"")
                 },
                 status_code=200
             )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
+
+
+@router.get("/deposit_list")
+async def deposit_list(
+        ID: int = None,
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
+):
+    if ID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        if db.search("users", "ID", ID) is None:
+            raise lpsql.exceptions.IDNotFound()
+        return JSONResponse(
+            {'result':
+                 db.manual(f"SELECT value, unix FROM history WHERE id_in LIKE \"u{ID}\" AND id_out LIKE \"d%\"")
+            },
+            status_code=200
+        )
     except lpsql.exceptions.IDNotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
