@@ -65,7 +65,7 @@ async def transfer_list(
                 raise lpsql.exceptions.IDNotFound()
             return JSONResponse(
                 {'result':
-                     db.manual(f"SELECT id_out, value, unix FROM history WHERE id_in LIKE \"u{ID_out}\" AND id_out LIKE \"u%\"")
+                     db.manual(f"SELECT id_out, value, unix FROM history WHERE id_in LIKE \"u{ID_in}\" AND id_out LIKE \"u%\"")
                 },
                 status_code=200
             )
