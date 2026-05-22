@@ -37,7 +37,7 @@ async def pay(
             db.insert("items", [
                 itemID,
                 fps["author"],
-                f"автоматическая оплата FPS#{fpsID}",
+                f"FPS#{fpsID}",
                 fps["amount"],
                 False  # active flag
             ])
