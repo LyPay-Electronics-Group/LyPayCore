@@ -81,11 +81,11 @@ async def new_store(
         name:        str = None,
         storeID:     str = None,
         hostID:      int = None,
-        email:       str = None,
+        link:        str = None,
         description: str = None,
         _ = D(TVF(*TOKENIZER.ADMIN_LIST))
 ):
-    if any(t is None for t in (name, storeID, hostID, email)):
+    if any(t is None for t in (name, storeID, hostID, link)):
         return parser.form_error_bad_parsing()
     if not await parser.get_setting("store_can_register"):
         return parser.form_error_flag_blocked()
@@ -99,7 +99,8 @@ async def new_store(
         return parser.form_error(AttributeError(), "bad censor flag: store desc", 406)
 
     try:
-        db.manual(f"DELETE FROM store_form_link WHERE email like \"{email}\"")
+        email = db.search("store_form_link", "link", link)["email"]
+        db.manual(f"DELETE FROM store_form_link WHERE link like \"{link}\"")
 
         db.insert(
             "stores",
