@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
 from scripts import lpsql, parser
+from scripts.unix import unix
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
@@ -20,8 +21,12 @@ async def lottery(
     if not await parser.get_setting("auction"):
         return parser.form_error_flag_blocked()
 
+    if ID in db.searchall("lottery", "ID"):
+        return parser.form_error(PermissionError(), "ticket has already been purchased", 403)
+
     try:
         db.transfer(ID, "auction_lottery_route", 1000)
+        db.insert("lottery", [ID, unix()])
         return JSONResponse(
             {"ok": True},
             status_code=200
