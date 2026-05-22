@@ -13,7 +13,7 @@ def qr(value: int | str):
 
     :param value: число
     """
-    make_qr(f"https://lypay.ru/agents?id={value}").save(PATHS.QR + f"{value}.svg", scale=10, border=2)
+    make_qr(f"https://lypay.ru/agents?id={value}").save(PATHS.QR + f"{value}.png", scale=10, border=2)
 
 
 async def save_iterative(origin: UploadFile, target_path: str):

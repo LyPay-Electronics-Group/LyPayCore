@@ -22,7 +22,7 @@ async def check(
         return parser.form_error_bad_parsing()
 
     try:
-        path = cfg.PATHS.QR + f"{ID}.svg"
+        path = cfg.PATHS.QR + f"{ID}.png"
         exist = exists(path)
         return JSONResponse(
             {'exists': exist, 'actual': exist and getmtime(path) <= float(unix)},
@@ -41,7 +41,7 @@ async def get(
         return parser.form_error_bad_parsing()
 
     try:
-        path = cfg.PATHS.QR + f"{ID}.svg"
+        path = cfg.PATHS.QR + f"{ID}.png"
         if exists(path):
             return FileResponse(
                 path,
