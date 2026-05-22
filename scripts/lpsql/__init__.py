@@ -11,7 +11,7 @@ class Tables:
             'promo', 'items', 'store_form_link', 'cheques', 'access_codes_guest',
             'access_codes_main', "fps", "mst_test3"]
 
-    FIREWALL = ['main', 'stores', 'admins']
+    FIREWALL = ['main', 'stores', 'admins', 'high']
 
 
 class DataBase:
