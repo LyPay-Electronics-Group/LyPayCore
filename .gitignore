@@ -11,3 +11,4 @@
 /data/stores/
 /data/users/
 /data/*.db*
+/data/*.json

@@ -20,10 +20,11 @@ FPS-линк, созданный {author}
 async def new(
         amount: int = None,
         author: str = None,
+        author_type: str = None,
         description: str = None,
         _ = D(TVF(*cfg.TOKENIZER.PUBLIC_LIST))
 ):
-    if amount is None or author is None:
+    if amount is None or author is None or author_type is None or author_type not in ('u', 's'):
         return parser.form_error_bad_parsing()
     if amount < 0:
         return parser.form_error(lpsql.exceptions.SubzeroInput(), "subzero input", 409)
@@ -33,7 +34,7 @@ async def new(
     elif not censor.censor(description):
         return parser.form_error(AttributeError(), "bad censor flag: FPS desc", 406)
 
-    if len(author) != 3:
+    if author_type == 'u':
         try:
             author = int(author)
             author_search = db.search("users", "ID", author)
@@ -48,15 +49,15 @@ async def new(
     try:
         ID = await idgen.fpsID()
         db.insert("fps", [
-            ID,                                   # ID
-            str(author),                          # author
-            'u' if type(author) is int else 's',  # author_type
-            description,                          # description
-            amount,                               # amount
-            None,                                 # payed
-            None,                                 # cheque
-            unix(),                               # unix_creation
-            None                                  # unix_payment
+            ID,           # ID
+            str(author),  # author
+            author_type,  # author_type
+            description,  # description
+            amount,       # amount
+            None,         # payed
+            None,         # cheque
+            unix(),       # unix_creation
+            None          # unix_payment
         ])
 
         return JSONResponse(

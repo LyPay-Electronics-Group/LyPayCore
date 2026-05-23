@@ -27,6 +27,24 @@ class Launcher:
     """
 
     def __init__(self):
+        if not exists(cfg.PATHS.LAUNCH_SETTINGS):
+            with open(cfg.PATHS.LAUNCH_SETTINGS, 'w') as f:
+                f.write(j2.to_({
+                    "launch":                        False,
+                    "auto_restart_cmd":              None,
+                    "auction":                       False,
+                    "user_can_register":             True,
+                    "user_can_register_via_linking": False,
+                    "user_can_deposit":              False,
+                    "user_can_transfer":             False,
+                    "user_can_use_promo":            False,
+                    "store_can_register":            False,
+                    "store_can_send_ad":             False,
+                    "store_show_placement_data":     False,
+                    "show_unknown_errors":           True,
+                    "last_launch":                   0
+                }))
+
         self.commands = {
             'exit':            [''],
             'help (h)':        [''],
@@ -86,9 +104,24 @@ class Launcher:
                 0,                         # auctionID
                 None                       # placeID
             ])
-            print(F.LIGHTYELLOW_EX + S.NORMAL + "CREATED")
+            print(F.LIGHTYELLOW_EX + S.NORMAL + "CREATED (1/2)", end=' ')
         else:
-            print(F.LIGHTGREEN_EX + S.NORMAL + "OK")
+            print(F.LIGHTGREEN_EX + S.NORMAL + "OK (1/2)", end=' ')
+        if self.db.searchall("stores", "ID").count("auction_lottery_route") == 0:
+            self.db.insert("stores", [
+                "auction_lottery_route",   # ID
+                "Беспроигрышная лотерея",  # name
+                0,                         # hostID
+                "auction_lottery_route",   # description
+                False,                     # logo
+                0,                         # balance
+                None,                      # hostEmail
+                0,                         # auctionID
+                None                       # placeID
+            ])
+            print(F.LIGHTYELLOW_EX + S.NORMAL + "CREATED (2/2)")
+        else:
+            print(F.LIGHTGREEN_EX + S.NORMAL + "OK (2/2)")
 
         print(F.LIGHTBLACK_EX + S.BRIGHT + "Reading ENVY config...", end=' ')
         found = load_dotenvy(".envy")

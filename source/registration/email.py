@@ -26,6 +26,8 @@ async def send(
     if any(t is None for t in (email, route)) or route not in ('main', 'guest', 'shopkeeper'):
         return parser.form_error_bad_parsing()
 
+    email = email.lower()
+
     try:
         if route == 'main':
             if code is None:
@@ -113,7 +115,7 @@ async def check_corporation_record(
         return parser.form_error_bad_parsing()
 
     try:
-        result = db.search("corporation", "email", email)
+        result = db.search("corporation", "email", email.lower())
 
         if result is None:
             raise lpsql.exceptions.EmailNotFound

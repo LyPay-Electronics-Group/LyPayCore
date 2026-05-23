@@ -61,8 +61,18 @@ async def get_all_stores_ids(
         _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
+        list_ = db.searchall("stores", "ID")
+        try:
+            list_.remove("auction_transfer_route")
+        except:
+            pass
+        try:
+            list_.remove("auction_lottery_route")
+        except:
+            pass
+
         return JSONResponse(
-            {"ids": db.searchall("stores", "ID")},
+            {"ids": list_},
             status_code=200
         )
     except Exception as e:

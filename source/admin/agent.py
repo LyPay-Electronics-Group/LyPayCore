@@ -56,3 +56,28 @@ async def do_agent_deposit(
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
+
+
+@router.get("/deposit_auc")
+async def do_auction_deposit(
+        auctionID: int = None,
+        amount:    int = None,
+        agentID:   int = None,
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
+):
+    if auctionID is None or amount is None or agentID is None:
+        return parser.form_error_bad_parsing()
+    if not await parser.get_setting("auction"):
+        return parser.form_error_flag_blocked()
+
+    try:
+        store_record = db.search("stores", "auctionID", auctionID)
+        db.deposit(store_record["ID"], amount, agentID)
+        return JSONResponse(
+            {'ok': True},
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)

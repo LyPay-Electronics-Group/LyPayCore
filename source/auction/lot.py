@@ -17,6 +17,7 @@ async def create_new_lot(
         name:      str = None,
         price:     int = None,
         auctionID: int = None,
+        lotID:     int = None,
         _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     if name is None or price is None or auctionID is None:
@@ -25,7 +26,10 @@ async def create_new_lot(
         return parser.form_error(lpsql.exceptions.SubzeroInput(), "subzero input", 409)
 
     try:
-        lotID = await idgen.lotID()
+        if lotID is None:
+            lotID = await idgen.lotID()
+        else:
+            db.manual(f"DELETE FROM auction WHERE lotID = {lotID}")
         db.insert("auction", [
             lotID,       # lotID
             name,        # name
@@ -34,7 +38,7 @@ async def create_new_lot(
             0            # confirmed
         ])
         return JSONResponse(
-            {"generated": lotID},
+            {"indexed": lotID},
             status_code=200
         )
     except Exception as e:
@@ -56,7 +60,6 @@ async def confirm_lot(
         storeID = db.search("stores", "auctionID", lot_record["auctionID"])["ID"]
 
         db.transfer(storeID, "auction_transfer_route", lot_record["price"])
-        # TODO: НУЖНА ПРОВЕРКА НА ЕДИНИЧНОСТЬ, чтобы исключить редактирование неверной записи (.update берёт первое совпадение)
         db.update("auction", "lotID", lotID, "confirmed", 1)
 
         return JSONResponse(
@@ -67,5 +70,30 @@ async def confirm_lot(
         return parser.form_error(e, "ID not found", 404)
     except lpsql.exceptions.NotEnoughBalance as e:
         return parser.form_error(e, "not enough balance", 409)
+    except Exception as e:
+        return parser.form_error(e)
+
+
+@router.get("/list")
+async def lot_list(
+        storeID: str = None,
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
+):
+    if storeID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        store = db.search("stores", "ID", storeID)
+        records = list()
+        for lot in db.search("auction", "auctionID", store["auctionID"], True):
+            if lot["confirmed"]:
+                records.append(lot)
+
+        return JSONResponse(
+            {"result": records},
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

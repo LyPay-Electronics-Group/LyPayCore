@@ -14,7 +14,7 @@ def censor(field: str) -> bool:
         char = field[index]
         if char == '<' or char == '>':
             return False
-        if char == '&' and field[index:index+3] not in ('&lt;', '&gt;') and field[index:index+4] != '&amp;':
+        if char == '&' and field[index:index+4] not in ('&lt;', '&gt;') and field[index:index+5] != '&amp;':
             return False
 
     return True

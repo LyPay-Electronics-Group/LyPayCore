@@ -70,3 +70,26 @@ async def get_db_info(
         return parser.form_error(e, "db returned a void", 404)
     except Exception as e:
         return parser.form_error(e)
+
+
+@router.get("/check_high")
+async def check_high_status(
+        userID: int = None,
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
+):
+    if userID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        search_result = db.search("users", "ID", userID)
+        if search_result is None:
+            raise lpsql.exceptions.IDNotFound
+
+        return JSONResponse(
+            {'result': firewall4.search("high", "ID", userID) is not None},
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)

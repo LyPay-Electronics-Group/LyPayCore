@@ -82,12 +82,20 @@ async def create_cheque(
             raise lpsql.exceptions.IDNotFound
 
         parsed_items = jwt_decode(items, cfg.JWT_KEY, ["HS256"])
-        chequeID = await idgen.chequeID(storeID)
+        unix_timestamp = unix()
 
+        cheque_sum = 0
+        for item, multiplier in parsed_items.items():
+            cheque_sum += db.search("items", "itemID", item)['price'] * multiplier
+
+        db.transfer(customer, storeID, cheque_sum)
+        db.update("users", "ID", customer, "last_online", unix_timestamp)
+
+        chequeID = await idgen.chequeID(storeID)
         db.insert("cheques", [
             chequeID,
             storeID,
-            unix(),
+            unix_timestamp,
             customer,
             j2.to_(parsed_items, string_mode=True),
             True  # active flag
@@ -98,6 +106,10 @@ async def create_cheque(
         )
     except lpsql.exceptions.IDNotFound as e:
         return parser.form_error(e, "ID not found", 404)
+    except lpsql.exceptions.SubzeroInput as e:
+        return parser.form_error(e, "subzero input", 409)
+    except lpsql.exceptions.NotEnoughBalance as e:
+        return parser.form_error(e, "not enough balance", 409)
     except Exception as e:
         return parser.form_error(e)
 
