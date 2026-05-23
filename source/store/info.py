@@ -66,6 +66,10 @@ async def get_all_stores_ids(
             list_.remove("auction_transfer_route")
         except:
             pass
+        try:
+            list_.remove("auction_lottery_route")
+        except:
+            pass
 
         return JSONResponse(
             {"ids": list_},
