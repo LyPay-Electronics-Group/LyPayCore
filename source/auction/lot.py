@@ -84,7 +84,10 @@ async def lot_list(
 
     try:
         store = db.search("stores", "ID", storeID)
-        records = db.search("auction", "auctionID", store["auctionID"], True)
+        records = list()
+        for lot in db.search("auction", "auctionID", store["auctionID"], True):
+            if lot["confirmed"]:
+                records.append(lot)
 
         return JSONResponse(
             {"result": records},
