@@ -72,3 +72,25 @@ async def confirm_lot(
         return parser.form_error(e, "not enough balance", 409)
     except Exception as e:
         return parser.form_error(e)
+
+
+@router.get("/list")
+async def lot_list(
+        storeID: str = None,
+        _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
+):
+    if storeID is None:
+        return parser.form_error_bad_parsing()
+
+    try:
+        store = db.search("stores", "ID", storeID)
+        records = db.search("auction", "auctionID", store["auctionID"], True)
+
+        return JSONResponse(
+            {"result": records},
+            status_code=200
+        )
+    except lpsql.exceptions.IDNotFound as e:
+        return parser.form_error(e, "ID not found", 404)
+    except Exception as e:
+        return parser.form_error(e)
