@@ -80,6 +80,6 @@ JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintol
 CHUNK_SIZE = 16384
 
 
-VERSION = "v3.0c"
-NAME = "Release 3"
-BUILD = 26
+VERSION = "v3.1c"
+NAME = "Release 3: global fixes"
+BUILD = 27
