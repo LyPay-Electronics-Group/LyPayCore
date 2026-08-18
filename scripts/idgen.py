@@ -42,15 +42,15 @@ class IDGenerator:
         return self.generate_code(length, self.alphabet)
 
     @staticmethod
-    def generate_id(length: int) -> int:
+    def generate_id(length: int) -> str:
         """
         Создаёт числовой ID
 
         :param length: необходимая длина ID
-        :return: ID (число)
+        :return: ID (строка)
         """
 
-        return r_rand(1, 10 ** length)
+        return str(r_rand(1, 10 ** length)).zfill(length)
 
 
     async def userID(self) -> int:
