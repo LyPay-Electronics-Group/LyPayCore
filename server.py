@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 
+from dotenv import load_dotenv as load_dotenvy
+load_dotenvy(".envy")
+
 from source.firewall import router as firewall_router
 from source.registration import router as registration_router
 from source.user import router as user_router

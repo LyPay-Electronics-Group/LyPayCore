@@ -1,4 +1,4 @@
-from os import mkdir, listdir, getenv, getcwd as cwd, remove
+from os import mkdir, listdir, getenv as getenvy, getcwd as cwd, remove
 from os.path import exists
 from subprocess import run
 
@@ -129,9 +129,9 @@ class Launcher:
             print(F.LIGHTRED_EX + "FAILED")
             print(F.LIGHTBLACK_EX + S.BRIGHT + " > trying to find already loaded system variables...", end=' ')
             loaded_env = {
-                getenv("LYPAY_HOST"), getenv("LYPAY_PORT"), getenv("LYPAY_EMAIL_MAIL"), getenv("LYPAY_EMAIL_HOST"),
-                getenv("LYPAY_EMAIL_PORT"), getenv("LYPAY_EMAIL_PASSWORD"), getenv("LYPAY_PUBLIC_TOKENS"),
-                getenv("LYPAY_ADMIN_TOKENS")
+                getenvy("LYPAY_HOST"), getenvy("LYPAY_PORT"), getenvy("LYPAY_EMAIL_MAIL"), getenvy("LYPAY_EMAIL_HOST"),
+                getenvy("LYPAY_EMAIL_PORT"), getenvy("LYPAY_EMAIL_PASSWORD"), getenvy("LYPAY_PUBLIC_TOKENS"),
+                getenvy("LYPAY_ADMIN_TOKENS")
             }
             if None in loaded_env:
                 print(F.LIGHTRED_EX + "FAILED", "Please, check the root directory and manually configure .envy, then restart", sep='\n')
