@@ -2,8 +2,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import INTEGER, SMALLINT, TEXT, VARCHAR, REAL, JSON, BOOLEAN, Index
 from sqlalchemy.ext.asyncio import AsyncAttrs
 
-from typing import Any
-
 
 class Base(AsyncAttrs, DeclarativeBase):
     def to_tuple(self) -> tuple:
@@ -20,7 +18,7 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 class __AccessCodesBase(Base):
     code:  Mapped[str] = mapped_column(TEXT, primary_key=True)
-    email: Mapped[str] = mapped_column(TEXT)
+    email: Mapped[str] = mapped_column(TEXT, unique=True)
 
 
 class AccessCodesGuest(__AccessCodesBase):
@@ -48,7 +46,7 @@ class Cheque(Base):
     storeID:  Mapped[str]            = mapped_column(TEXT)
     unix:     Mapped[float]          = mapped_column(REAL)
     customer: Mapped[int]            = mapped_column(INTEGER)
-    items:    Mapped[dict[str, Any]] = mapped_column(JSON)
+    items:    Mapped[dict[str, int]] = mapped_column(JSON)
     active:   Mapped[bool]           = mapped_column(BOOLEAN, default=True)
 
 
@@ -57,21 +55,21 @@ class CorporationEntry(Base):
 
     name:     Mapped[str] = mapped_column(TEXT)
     category: Mapped[str] = mapped_column(TEXT)
-    email:    Mapped[str] = mapped_column(TEXT)
+    email:    Mapped[str] = mapped_column(TEXT, primary_key=True)
 
 
 class FPS(Base):
     __tablename__ = "fps"
 
-    ID:            Mapped[str]        = mapped_column(TEXT,    primary_key=True)
-    author:        Mapped[str]        = mapped_column(TEXT)
-    author_type:   Mapped[str]        = mapped_column(VARCHAR)
-    description:   Mapped[str | None] = mapped_column(TEXT)
-    amount:        Mapped[int]        = mapped_column(INTEGER)
-    payed:         Mapped[int | None] = mapped_column(INTEGER)
-    cheque:        Mapped[str | None] = mapped_column(TEXT)
-    unix_creation: Mapped[float]      = mapped_column(REAL)
-    unix_payment:  Mapped[float]      = mapped_column(REAL)
+    ID:            Mapped[str]          = mapped_column(TEXT,    primary_key=True)
+    author:        Mapped[str]          = mapped_column(TEXT)
+    author_type:   Mapped[str]          = mapped_column(VARCHAR)
+    description:   Mapped[str | None]   = mapped_column(TEXT)
+    amount:        Mapped[int]          = mapped_column(INTEGER)
+    payed:         Mapped[int | None]   = mapped_column(INTEGER)
+    cheque:        Mapped[str | None]   = mapped_column(TEXT)
+    unix_creation: Mapped[float]        = mapped_column(REAL)
+    unix_payment:  Mapped[float | None] = mapped_column(REAL)
 
 
 class HistoryEntry(Base):
@@ -93,7 +91,7 @@ class Item(Base):
     active:  Mapped[bool] = mapped_column(BOOLEAN, default=True)
 
 
-class Lottery(Base):
+class LotteryTicket(Base):
     __tablename__ = "lottery"
 
     ID:   Mapped[str]   = mapped_column(TEXT, primary_key=True)
@@ -188,7 +186,7 @@ __all__ = (
     "FPS",
     "HistoryEntry",
     "Item",
-    "Lottery",
+    "LotteryTicket",
     "Promo",
     "Shopkeeper",
     "StoreFormLink",
