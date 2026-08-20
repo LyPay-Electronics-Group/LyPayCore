@@ -17,3 +17,6 @@ class AsyncDatabase:
 
     def get_engine(self):
         return self.engine
+
+    def turn_engine_off(self):
+        self.engine.dispose()
