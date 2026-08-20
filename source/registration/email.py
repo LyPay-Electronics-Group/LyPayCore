@@ -3,16 +3,16 @@ from fastapi.responses import JSONResponse
 
 from jwt import decode as jwt_decode
 
-from scripts import parser, lpsql, mailer
+from scripts import parser, mailer
 from scripts.token_validator import token_validate_factory as TVF
 from scripts.unix import unix
 from scripts.idgen import IDGenerator
-from data.config import PATHS, VERSION, BUILD, NAME, JWT_KEY, EMAIL, TOKENIZER
+from data.config import VERSION, BUILD, NAME, JWT_KEY, EMAIL, TOKENIZER
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(PATHS.DATA + "lypay_database.db", lpsql.Tables.MAIN)
-idgen = IDGenerator(db)
+idgen = IDGenerator()
 
 
 @router.get("/send")
@@ -29,74 +29,92 @@ async def send(
     email = email.lower()
 
     try:
-        if route == 'main':
-            if code is None:
-                code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
-            if keys is None:
-                keys = {
-                    "VERSION": VERSION,
-                    "BUILD": BUILD,
-                    "NAME": f' ({NAME})' if NAME != '' else ''
-                }
-            else:
-                keys = jwt_decode(keys, JWT_KEY, ["HS256"])
-            keys["CODE"] = code
+        async with db.session_link() as session:
+            async with session.begin():
+                if route == 'main':
+                    if code is None:
+                        code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
+                    if keys is None:
+                        keys = {
+                            "VERSION": VERSION,
+                            "BUILD": BUILD,
+                            "NAME": f' ({NAME})' if NAME != '' else ''
+                        }
+                    else:
+                        keys = jwt_decode(keys, JWT_KEY, ["HS256"])
+                    keys["CODE"] = code
 
-            await mailer.send_async(path=EMAIL.PATHS.MAIN, recipient=email,
-                                    subject=EMAIL.SUBJECTS.MAIN, keys=keys,
-                                    files=None)     # [EMAIL.PATHS.USER_MANUAL]
+                    await mailer.send_async(path=EMAIL.PATHS.MAIN, recipient=email,
+                                            subject=EMAIL.SUBJECTS.MAIN, keys=keys,
+                                            files=None)     # [EMAIL.PATHS.USER_MANUAL]
 
-            db.manual(f"DELETE FROM access_codes_main WHERE email like \"{email}\"")
-            db.insert(
-                "access_codes_main",
-                [code, email]
-            )
+                    entry_to_delete = (await session.execute(
+                        db.select(db.AccessCodesMain).where(db.AccessCodesMain.email == email).with_for_update()
+                    )).scalar_one_or_none()
+                    if entry_to_delete is not None:
+                        session.delete(entry_to_delete)
 
-        elif route == 'guest':
-            if code is None:
-                code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
-            if keys is None:
-                keys = {
-                    "VERSION": VERSION,
-                    "BUILD": BUILD,
-                    "NAME": f' ({NAME})' if NAME != '' else '',
-                    "UX": unix()
-                }
-            else:
-                keys = jwt_decode(keys, JWT_KEY, ["HS256"])
-            keys["CODE"] = code
+                    session.add(
+                        db.AccessCodesMain(
+                            email=email,
+                            code=code,
+                        )
+                    )
 
-            await mailer.send_async(path=EMAIL.PATHS.GUEST, recipient=email,
-                                    subject=EMAIL.SUBJECTS.GUEST, keys=keys,
-                                    files=None)     # [EMAIL.PATHS.USER_MANUAL]
+                elif route == 'guest':
+                    if code is None:
+                        code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
+                    if keys is None:
+                        keys = {
+                            "VERSION": VERSION,
+                            "BUILD": BUILD,
+                            "NAME": f' ({NAME})' if NAME != '' else '',
+                            "UX": unix()
+                        }
+                    else:
+                        keys = jwt_decode(keys, JWT_KEY, ["HS256"])
+                    keys["CODE"] = code
 
-            db.manual(f"DELETE FROM access_codes_guest WHERE email like \"{email}\"")
-            db.insert(
-                "access_codes_guest",
-                [code, email]
-            )
+                    await mailer.send_async(path=EMAIL.PATHS.GUEST, recipient=email,
+                                            subject=EMAIL.SUBJECTS.GUEST, keys=keys,
+                                            files=None)     # [EMAIL.PATHS.USER_MANUAL]
 
-        else:  # shopkeeper
-            if code is None:
-                code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
-            if keys is None:
-                keys = {
-                    "VERSION": VERSION,
-                    "BUILD": BUILD,
-                    "NAME": f' ({NAME})' if NAME != '' else ''
-                }
-            else:
-                keys = jwt_decode(keys, JWT_KEY, ["HS256"])
-            keys["CODE"] = code
+                    entry_to_delete = (await session.execute(
+                        db.select(db.AccessCodesGuest).where(db.AccessCodesGuest.email == email).with_for_update()
+                    )).scalar_one_or_none()
+                    if entry_to_delete is not None:
+                        session.delete(entry_to_delete)
 
-            await mailer.send_async(path=EMAIL.PATHS.STORE, recipient=email,
-                                    subject=EMAIL.SUBJECTS.SHOPKEEPER, keys=keys,
-                                    files=None)     # [EMAIL.PATHS.STORE_MANUAL]
+                    session.add(
+                        db.AccessCodesGuest(
+                            email=email,
+                            code=code,
+                        )
+                    )
 
-            db.insert(
-                "store_form_link",
-                [code, email]
-            )
+                else:  # shopkeeper
+                    if code is None:
+                        code = idgen.generate_code_default(EMAIL.ACCESS_CODE_LENGTH)
+                    if keys is None:
+                        keys = {
+                            "VERSION": VERSION,
+                            "BUILD": BUILD,
+                            "NAME": f' ({NAME})' if NAME != '' else ''
+                        }
+                    else:
+                        keys = jwt_decode(keys, JWT_KEY, ["HS256"])
+                    keys["CODE"] = code
+
+                    await mailer.send_async(path=EMAIL.PATHS.STORE, recipient=email,
+                                            subject=EMAIL.SUBJECTS.SHOPKEEPER, keys=keys,
+                                            files=None)     # [EMAIL.PATHS.STORE_MANUAL]
+
+                    session.add(
+                        db.StoreFormLink(
+                            email=email,
+                            code=code,
+                        )
+                    )
 
         return JSONResponse(
             {'ok': True},
@@ -115,17 +133,19 @@ async def check_corporation_record(
         return parser.form_error_bad_parsing()
 
     try:
-        result = db.search("corporation", "email", email.lower())
+        async with db.session_link() as session:
+            result = await session.get(db.CorporationEntry, email.lower())
+            if result is None:
+                raise db.exceptions.NotFound
 
-        if result is None:
-            raise lpsql.exceptions.EmailNotFound
+        result = result.to_dict()
+        result["group"] = result.pop("category")
 
-        result["group"] = result.pop("class")
         return JSONResponse(
             result,
             status_code=200
         )
-    except lpsql.exceptions.EmailNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "email not found", 404)
     except Exception as e:
         return parser.form_error(e)

@@ -4,13 +4,13 @@ from fastapi.responses import JSONResponse, FileResponse
 from os.path import getmtime, exists
 from os import remove
 
-from scripts import lpsql, parser, memory
+from scripts import parser, memory
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/get")
@@ -24,17 +24,16 @@ async def get_avatar(
 
     try:
         path = cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"
-        store = db.search("stores", "ID", ID)
-        if store is not None:
-            has_icon = store["avatar"]
-        else:
-            raise lpsql.exceptions.IDNotFound()
+        async with db.session_link() as session:
+            store = await session.get(db.Store, ID)
+            if store is None:
+                raise db.exceptions.NotFound
 
-        if not bool(has_icon):
-            return JSONResponse(
-                {"result": "no icon"},
-                status_code=200
-            )
+            if not store.avatar:
+                return JSONResponse(
+                    {"result": "no icon"},
+                    status_code=200
+                )
 
         if not exists(path):
             return parser.form_error(FileNotFoundError(), "avatar not found", 404)
@@ -49,7 +48,7 @@ async def get_avatar(
             media_type='image/jpg',
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -65,18 +64,19 @@ async def update_avatar(
         return parser.form_error_bad_parsing()
 
     try:
-        store = db.search("stores", "ID", ID)
-        if store is None:
-            raise lpsql.exceptions.IDNotFound()
-
-        db.update("stores", "ID", ID, "avatar", True)
+        async with db.session_link() as session:
+            async with session.begin():
+                store = await session.get(db.Store, ID, with_for_update=True)
+                if store is None:
+                    raise db.exceptions.NotFound
+                store.avatar = True
 
         await memory.save_iterative(avatar, cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
         return JSONResponse(
             {"ok": True},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -91,19 +91,22 @@ async def remove_avatar(
         return parser.form_error_bad_parsing()
 
     try:
-        if db.search("stores", "ID", ID) is None:
-            raise lpsql.exceptions.IDNotFound()
+        async with db.session_link() as session:
+            async with session.begin():
+                store = await session.get(db.Store, ID, with_for_update=True)
+                if store is None:
+                    raise db.exceptions.NotFound
+                store.avatar = False
 
         path = cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"
         if exists(path):
             remove(path)
 
-        db.update("stores", "ID", ID, "avatar", False)
         return JSONResponse(
             {"ok": True},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

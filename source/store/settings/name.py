@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser, censor
+from scripts import parser, censor
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/get")
@@ -19,15 +19,16 @@ async def get_name(
         return parser.form_error_bad_parsing()
 
     try:
-        store = db.search("stores", "ID", ID)
-        if store is None:
-            raise lpsql.exceptions.IDNotFound()
+        async with db.session_link() as session:
+            store = await session.get(db.Store, ID)
+            if store is None:
+                raise db.exceptions.NotFound
 
-        return JSONResponse(
-            {"result": store["name"]},
-            status_code=200
-        )
-    except lpsql.exceptions.IDNotFound as e:
+            return JSONResponse(
+                {"result": store.name},
+                status_code=200
+            )
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -41,21 +42,22 @@ async def update_name(
 ):
     if ID is None or new is None:
         return parser.form_error_bad_parsing()
+    if not censor.check_store_name(new):
+        return parser.form_error(AttributeError(), "bad censor flag: store name", 406)
 
     try:
-        store = db.search("stores", "ID", ID)
-        if store is None:
-            raise lpsql.exceptions.IDNotFound()
+        async with db.session_link() as session:
+            async with session.begin():
+                store = await session.get(db.Store, ID, with_for_update=True)
+                if store is None:
+                    raise db.exceptions.NotFound
+                store.name = new
 
-        if not censor.check_store_name(new):
-            return parser.form_error(AttributeError(), "bad censor flag: store name", 406)
-
-        db.update("stores", "ID", ID, "name", new)
         return JSONResponse(
             {"ok": True},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

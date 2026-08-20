@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser
+from scripts import parser
 from scripts.unix import unix
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/transfer")
@@ -25,17 +25,46 @@ async def transfer(
         return parser.form_error_flag_blocked()
 
     try:
-        db.transfer(ID_out, ID_in if mode == 'b' else int(ID_in), amount)
-        db.update("users", "ID", ID_out, "last_online", unix())
+        if amount <= 0:
+            raise db.exceptions.ValueLoE0
+
+        async with db.session_link() as session:
+            async with session.begin():
+                out_ = await session.get(db.User, ID_out)
+                if out_ is None:
+                    raise db.exceptions.NotFound
+                if out_.balance < amount:
+                    raise db.exceptions.NotEnoughBalance
+
+
+                if mode == 't':
+                    in_ = await session.get(db.User, int(ID_in))
+                else:  # mode == 'b'
+                    in_ = await session.get(db.Store, ID_in)
+                if in_ is None:
+                    raise db.exceptions.NotFound
+
+                out_.balance -= amount
+                in_.balance += amount
+
+                unix_timestamp = unix()
+                out_.last_online = unix_timestamp
+                session.add(db.HistoryEntry(
+                    ID_out=f"u{ID_out}",
+                    ID_in=f"{'s' if mode == 't' else 'u'}{ID_in}",
+                    value=amount,
+                    unix=unix_timestamp
+                ))
+
         return JSONResponse(
             {"ok": True},
             status_code=200
         )
-    except lpsql.exceptions.SubzeroInput as e:
+    except db.exceptions.ValueLoE0 as e:
         return parser.form_error(e, "subzero input", 409)
-    except lpsql.exceptions.NotEnoughBalance as e:
+    except db.exceptions.NotEnoughBalance as e:
         return parser.form_error(e, "not enough balance", 409)
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -51,25 +80,44 @@ async def transfer_list(
         return parser.form_error_bad_parsing()
 
     try:
-        if ID_out is not None:
-            if db.search("users", "ID", ID_out) is None:
-                raise lpsql.exceptions.IDNotFound()
-            return JSONResponse(
-                {'result':
-                     db.manual(f"SELECT id_in, value, unix FROM history WHERE id_out LIKE \"u{ID_out}\" AND id_in LIKE \"u%\"")
-                },
-                status_code=200
-            )
-        else:
-            if db.search("users", "ID", ID_in) is None:
-                raise lpsql.exceptions.IDNotFound()
-            return JSONResponse(
-                {'result':
-                     db.manual(f"SELECT id_out, value, unix FROM history WHERE id_in LIKE \"u{ID_in}\" AND id_out LIKE \"u%\"")
-                },
-                status_code=200
-            )
-    except lpsql.exceptions.IDNotFound as e:
+        async with db.session_link() as session:
+            if ID_out is not None:
+                if await session.get(db.User, ID_out) is None:
+                    raise db.exceptions.NotFound
+                return JSONResponse(
+                    {
+                        'result': list(map(tuple, (await session.execute(
+                            db.select(
+                                db.HistoryEntry.ID_in,
+                                db.HistoryEntry.value,
+                                db.HistoryEntry.unix
+                            ).where(
+                                db.HistoryEntry.ID_out == f"u{ID_out}",
+                                db.HistoryEntry.ID_in.startswith('u')
+                            ).with_for_update(read=True)
+                        )).all()))
+                    },
+                    status_code=200
+                )
+            else:
+                if await session.get(db.User, ID_in) is None:
+                    raise db.exceptions.NotFound
+                return JSONResponse(
+                    {
+                        'result': list(map(tuple, (await session.execute(
+                            db.select(
+                                db.HistoryEntry.ID_out,
+                                db.HistoryEntry.value,
+                                db.HistoryEntry.unix
+                            ).where(
+                                db.HistoryEntry.ID_in == f"u{ID_in}",
+                                db.HistoryEntry.ID_out.startswith('u')
+                            ).with_for_update(read=True)
+                        )).all()))
+                    },
+                    status_code=200
+                )
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -84,15 +132,24 @@ async def deposit_list(
         return parser.form_error_bad_parsing()
 
     try:
-        if db.search("users", "ID", ID) is None:
-            raise lpsql.exceptions.IDNotFound()
-        return JSONResponse(
-            {'result':
-                 db.manual(f"SELECT value, unix FROM history WHERE id_in LIKE \"u{ID}\" AND id_out LIKE \"d%\"")
-            },
-            status_code=200
-        )
-    except lpsql.exceptions.IDNotFound as e:
+        async with db.session_link() as session:
+            if await session.get(db.User, ID) is None:
+                raise db.exceptions.NotFound
+            return JSONResponse(
+                {
+                    'result': list(map(tuple, (await session.execute(
+                        db.select(
+                            db.HistoryEntry.value,
+                            db.HistoryEntry.unix
+                        ).where(
+                            db.HistoryEntry.ID_in == f"u{ID}",
+                            db.HistoryEntry.ID_out.startswith('d')
+                        ).with_for_update(read=True)
+                    )).all()))
+                },
+                status_code=200
+            )
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -107,15 +164,24 @@ async def cheque_list(
         return parser.form_error_bad_parsing()
 
     try:
-        if db.search("users", "ID", ID) is None:
-            raise lpsql.exceptions.IDNotFound()
-        return JSONResponse(
-            {'result':
-                 db.manual(f"SELECT storeID, items, unix FROM cheques WHERE customer = {ID}")
-            },
-            status_code=200
-        )
-    except lpsql.exceptions.IDNotFound as e:
+        async with db.session_link() as session:
+            if await session.get(db.User, ID) is None:
+                raise db.exceptions.NotFound
+            return JSONResponse(
+                {
+                    'result': list(map(tuple, (await session.execute(
+                        db.select(
+                            db.Cheque.storeID,
+                            db.Cheque.items,
+                            db.Cheque.unix
+                        ).where(
+                            db.Cheque.customer == ID
+                        ).with_for_update(read=True)
+                    )).all()))
+                },
+                status_code=200
+            )
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

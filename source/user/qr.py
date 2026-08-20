@@ -3,13 +3,12 @@ from fastapi.responses import JSONResponse, FileResponse
 
 from os.path import exists, getmtime
 
-from scripts import lpsql, memory, parser
+from scripts import memory, parser
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/check")

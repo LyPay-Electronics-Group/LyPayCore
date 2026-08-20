@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser
+from scripts import parser
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/get/base")
@@ -19,15 +19,16 @@ async def get_basic_info(
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("stores", "ID", ID)
-        if search_result is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            search_result = await session.get(db.Store, ID)
+            if search_result is None:
+                raise db.exceptions.NotFound
 
         return JSONResponse(
-            search_result,
+            search_result.as_dict(),
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -42,15 +43,18 @@ async def get_by_shopkeeper(
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("shopkeepers", "userID", ID)
-        if search_result is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            search_result = (await session.scalars(
+                db.select(db.Shopkeeper).where(db.Shopkeeper.userID == ID)
+            )).one_or_none()
+            if search_result is None:
+                raise db.exceptions.NotFound
 
         return JSONResponse(
-            search_result,
+            search_result.as_dict(),
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -61,7 +65,10 @@ async def get_all_stores_ids(
         _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
-        list_ = db.searchall("stores", "ID")
+        async with db.session_link() as session:
+            list_ = (await session.scalars(
+                db.select(db.Store.ID)
+            )).all()
         try:
             list_.remove("auction_transfer_route")
         except:
@@ -84,10 +91,15 @@ async def get_all_shopkeepers(
         _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
-        return JSONResponse(
-            {"ids": db.searchall("shopkeepers", "userID")},
-            status_code=200
-        )
+        async with db.session_link() as session:
+            return JSONResponse(
+                {
+                    "ids": (await session.scalars(
+                        db.select(db.Shopkeeper.userID)
+                    )).all()
+                },
+                status_code=200
+            )
     except Exception as e:
         return parser.form_error(e)
 
@@ -101,15 +113,16 @@ async def check_link(
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("store_form_link", "link", link)
-        if search_result is None:
-            raise lpsql.exceptions.EmailNotFound
+        async with db.session_link() as session:
+            search_result = await session.get(db.StoreFormLink, link)
+            if search_result is None:
+                raise db.exceptions.NotFound
 
         return JSONResponse(
-            {"email": search_result["email"]},
+            {"email": search_result.email},
             status_code=200
         )
-    except lpsql.exceptions.EmailNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "link email not found", 404)
     except Exception as e:
         return parser.form_error(e)

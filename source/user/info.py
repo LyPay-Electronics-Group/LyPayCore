@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser
+from scripts import parser
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/get")
@@ -20,32 +20,37 @@ async def get_basic_info(
     if ID is None and email is None and login is None:
         return parser.form_error_bad_parsing()
 
+    comment = None
     try:
-        if ID is not None:
-            result = db.search("users", "ID", ID)
-            if result is None:
-                raise lpsql.exceptions.IDNotFound()
-        elif email is not None:
-            result = db.search("users", "email", email)
-            if result is None:
-                raise lpsql.exceptions.EmailNotFound()
-        else:
-            result = db.search("users", "login", login)
-            if result is None:
-                raise lpsql.exceptions.EntryNotFound()
+        async with db.session_link() as session:
+            if ID is not None:
+                result = await session.get(db.User, ID)
+                if result is None:
+                    comment = "ID not found"
+                    raise db.exceptions.NotFound
+            elif email is not None:
+                result = (await session.scalars(
+                    db.select(db.User).where(db.User.email == email)
+                )).one_or_none()
+                if result is None:
+                    comment = "email not found"
+                    raise db.exceptions.NotFound
+            else:
+                result = (await session.scalars(
+                    db.select(db.User).where(db.User.login == login)
+                )).one_or_none()
+                if result is None:
+                    comment = "login not found"
+                    raise db.exceptions.NotFound
 
-
-        result["group"] = result.pop("class")
+        result = result.as_dict()
+        result["group"] = result.pop("category")
         return JSONResponse(
             result,
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
-        return parser.form_error(e, "ID not found", 404)
-    except lpsql.exceptions.EmailNotFound as e:
-        return parser.form_error(e, "email not found", 404)
-    except lpsql.exceptions.EntryNotFound as e:
-        return parser.form_error(e, "login not found", 404)
+    except db.exceptions.NotFound as e:
+        return parser.form_error(e, comment, 404)
     except Exception as e:
         return parser.form_error(e)
 
@@ -55,10 +60,15 @@ async def get_all_users_ids(
         _ = D(TVF(*cfg.TOKENIZER.ADMIN_LIST))
 ):
     try:
-        return JSONResponse(
-            {"ids": db.searchall("users", "ID")},
-            status_code=200
-        )
+        async with db.session_link() as session:
+            return JSONResponse(
+                {
+                    "ids": (await session.scalars(
+                        db.select(db.User.ID)
+                    )).all()
+                },
+                status_code=200
+            )
     except Exception as e:
         return parser.form_error(e)
 
@@ -73,15 +83,18 @@ async def check_code(
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search(f"access_codes_{route}", "code", code)
-        if search_result is None:
-            raise lpsql.exceptions.EmailNotFound
+        async with db.session_link() as session:
+            search_result = await session.scalar(
+                db.text(f"SELECT email FROM access_codes_{route} WHERE code = '{code}'")
+            )
+            if search_result is None:
+                raise db.exceptions.NotFound
 
         return JSONResponse(
-            {"email": search_result["email"]},
+            {"email": search_result},
             status_code=200
         )
-    except lpsql.exceptions.EmailNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "email not found", 404)
     except Exception as e:
         return parser.form_error(e)

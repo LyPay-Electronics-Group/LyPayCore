@@ -4,14 +4,13 @@ from fastapi.responses import JSONResponse
 from psutil import cpu_percent as CPU, virtual_memory as RAM, process_iter
 from platform import system as get_platform_name
 
-from scripts import lpsql, parser
+from scripts import parser
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
-firewall4 = lpsql.DataBase(cfg.PATHS.FIREWALL_DB, lpsql.Tables.FIREWALL)
 platform_name = get_platform_name()
 
 
@@ -56,17 +55,20 @@ async def get_db_info(
     try:
         result = None
         if db_type == 'main':
-            result = db.manual(query)
+            async with db.session_link() as connection:
+                result = (await connection.execute(
+                    db.text(query)
+                )).scalars().fetchall()
+                if result is None:
+                    raise db.exceptions.NotFound
         elif db_type == 'fw':
-            result = firewall4.manual(query)
+            print('fw legacy call attempted')
 
-        if result is None:
-            raise lpsql.exceptions.EntryNotFound
         return JSONResponse(
-            {"result": result},
+            {"result": list(map(lambda t: t.to_dict(), result))},
             status_code=200
         )
-    except lpsql.exceptions.EntryNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "db returned a void", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -81,15 +83,20 @@ async def check_high_status(
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("users", "ID", userID)
-        if search_result is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            user = await session.get(db.User, userID)
+            if user is None:
+                raise db.exceptions.NotFound
+
+            firewall_entry = (await session.execute(
+                db.select(db.FirewallHighEntry).where(db.FirewallHighEntry.ID == userID)
+            )).scalar_one_or_none()
 
         return JSONResponse(
-            {'result': firewall4.search("high", "ID", userID) is not None},
+            {'result': firewall_entry is not None},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

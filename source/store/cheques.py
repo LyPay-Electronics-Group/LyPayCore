@@ -3,16 +3,17 @@ from fastapi.responses import JSONResponse
 
 from jwt import decode as jwt_decode
 
-from scripts import lpsql, parser, j2
+from database import Cheque
+from scripts import parser, j2
 from scripts.token_validator import token_validate_factory as TVF
 from scripts.idgen import IDGenerator
 from scripts.unix import unix
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
-idgen = IDGenerator(db)
+idgen = IDGenerator()
 
 
 @router.get("/get")
@@ -24,15 +25,16 @@ async def get_cheque(
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("cheques", "chequeID", chequeID)
-        if search_result is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            search_result = await session.get(db.Cheque, chequeID)
+            if search_result is None:
+                raise db.exceptions.NotFound
 
         return JSONResponse(
             search_result,
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -49,19 +51,22 @@ async def get_all_cheques(
 
     inactive_filter = not bool(active_filter)
     try:
-        if db.search("stores", "ID", storeID) is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            if await session.get(db.Store, storeID) is None:
+                raise db.exceptions.NotFound
 
-        search_result = list()
-        for item in db.search("cheques", "storeID", storeID, True):
-            if item['active'] or inactive_filter:
-                search_result.append(item["chequeID"])
+            search_result = (await session.scalars(
+                db.select(db.Cheque.chequeID).where(
+                    db.Cheque.storeID == storeID,
+                    db.or_(inactive_filter, db.Cheque.active.is_(True))
+                )
+            )).all()
 
         return JSONResponse(
             {"result": search_result},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -78,37 +83,53 @@ async def create_cheque(
         return parser.form_error_bad_parsing()
 
     try:
-        if storeID not in db.searchall("stores", "ID"):
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            if await session.geet(db.Store, storeID) is None:
+                raise db.exceptions.NotFound
 
-        parsed_items = jwt_decode(items, cfg.JWT_KEY, ["HS256"])
-        unix_timestamp = unix()
+            parsed_items = jwt_decode(items, cfg.JWT_KEY, ["HS256"])
+            unix_timestamp = unix()
 
-        cheque_sum = 0
-        for item, multiplier in parsed_items.items():
-            cheque_sum += db.search("items", "itemID", item)['price'] * multiplier
+            cheque_sum = 0
+            for item, multiplier in parsed_items.items():
+                cheque_sum += (await session.scalar(
+                    db.select(db.Item.price).where(db.Item.itemID == item).with_for_update(read=True)
+                )) * multiplier
+            if cheque_sum <= 0:
+                raise db.exceptions.ValueLoE0
 
-        db.transfer(customer, storeID, cheque_sum)
-        db.update("users", "ID", customer, "last_online", unix_timestamp)
+            async with session.begin():
+                user = await session.get(db.User, customer, with_for_update=True)
+                store = await session.get(db.Store, storeID, with_for_update=True)
 
-        chequeID = await idgen.chequeID(storeID)
-        db.insert("cheques", [
-            chequeID,
-            storeID,
-            unix_timestamp,
-            customer,
-            j2.to_(parsed_items, string_mode=True),
-            True  # active flag
-        ])
+                user.balance -= cheque_sum
+                store.balance += cheque_sum
+                session.add(db.HistoryEntry(
+                    ID_in=f"s{storeID}",
+                    ID_out=f"u{customer}",
+                    value=cheque_sum,
+                    unix=unix_timestamp
+                ))
+                user.last_seen = unix_timestamp
+
+                chequeID = await idgen.chequeID(storeID, session)
+                session.add(db.Cheque(
+                    chequeID=chequeID,
+                    storeID=storeID,
+                    unix=unix_timestamp,
+                    customer=customer,
+                    items=parsed_items,
+                    active=True
+                ))
         return JSONResponse(
             {'generated': chequeID},
             status_code=201
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
-    except lpsql.exceptions.SubzeroInput as e:
+    except db.exceptions.ValueLoE0 as e:
         return parser.form_error(e, "subzero input", 409)
-    except lpsql.exceptions.NotEnoughBalance as e:
+    except db.exceptions.NotEnoughBalance as e:
         return parser.form_error(e, "not enough balance", 409)
     except Exception as e:
         return parser.form_error(e)
@@ -123,27 +144,37 @@ async def cancel_cheque(
         return parser.form_error_bad_parsing()
 
     try:
-        cheque = db.search("cheques", "chequeID", chequeID)
-        if cheque is None:
-            raise lpsql.exceptions.EntryNotFound
+        async with db.session_link() as session:
+            async with session.begin():
+                cheque = await session.get(db.Cheque, chequeID, with_for_update=True)
+                if cheque is None:
+                    raise db.exceptions.NotFound
 
-        amount = 0
-        for itemID, multiplier in j2.from_(cheque["items"]).items():
-            item = db.search("items", "itemID", itemID)
-            if item is None:
-                continue  # raise lpsql.exceptions.IDNotFound
-            amount += item["price"] * multiplier
-        db.transfer(cheque["storeID"], cheque["customer"], amount)
+                amount = 0
+                for itemID, multiplier in cheque.items.items():
+                    item = await session.get(db.Item, itemID)
+                    if item is None:
+                        continue  # raise db.exceptions.NotFound ?
+                    amount += item.price * multiplier
 
-        db.update("cheques", "chequeID", chequeID, "active", False)
+                store = await session.get(db.Store, cheque.storeID, with_for_update=True)
+                user = await session.get(db.User, cheque.customer, with_for_update=True)
+
+                store.balance -= amount
+                user.balance += amount
+                session.add(db.HistoryEntry(
+                    ID_out=f"s{cheque.storeID}",
+                    ID_in=f"u{cheque.customer}",
+                    value=amount,
+                    unix=unix()
+                ))
+                cheque.active = False
 
         return JSONResponse(
             {'ok': True},
             status_code=200
         )
-    except lpsql.exceptions.EntryNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
-    except lpsql.exceptions.IDNotFound as e:
-        return parser.form_error(e, "item ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

@@ -1,15 +1,14 @@
 from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser
+from scripts import parser
 from scripts.token_validator import token_validate_factory as TVF
 from scripts.unix import unix
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
-firewall4 = lpsql.DataBase(cfg.PATHS.FIREWALL_DB, lpsql.Tables.FIREWALL)
 
 
 @router.get("/list")
@@ -21,18 +20,19 @@ async def access_list(
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = list()
-        for entry in db.search("shopkeepers", "storeID", storeID, True):
-            search_result.append(entry["userID"])
+        async with db.session_link() as session:
+            search_result = (await session.scalars(
+                db.select(db.Shopkeeper.userID).where(db.Shopkeeper.storeID == storeID)
+            )).all()
 
-        if len(search_result) == 0:
-            raise lpsql.exceptions.IDNotFound
+            if len(search_result) == 0:
+                raise db.exceptions.NotFound
 
         return JSONResponse(
             {"result": search_result},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -48,32 +48,32 @@ async def access_add(
         return parser.form_error_bad_parsing()
 
     try:
-        if db.search("stores", "ID", storeID) is None:
-            raise lpsql.exceptions.IDNotFound
-        if db.search("users", "ID", userID) is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            if await session.get(db.Store, storeID) is None or await session.get(db.User, userID) is None:
+                raise db.exceptions.NotFound
+            if (await session.scalars(
+                db.select(db.Shopkeeper).where(db.Shopkeeper.userID == userID)
+            )).one_or_none() is not None:
+                raise PermissionError
 
-        if db.search("shopkeepers", "userID", userID) is not None:
-            return parser.form_error(PermissionError(), "user is already a shopkeeper", 403)
-
-        db.insert(
-            "shopkeepers",
-            [userID, storeID]
-        )
-        firewall4.insert(
-            "stores",
-            [
-                userID,  # ID
-                unix(),  # unix
-                True,    # access
-                "added by access router"  # comment
-            ]
-        )
+            async with session.begin():
+                session.add(db.Shopkeeper(
+                    userID=userID,
+                    storeID=storeID
+                ))
+                session.add(db.FirewallStoresEntry(
+                    ID=userID,
+                    unix=unix(),
+                    access=True,
+                    comment="added via access router"
+                ))
         return JSONResponse(
             {"ok": True},
             status_code=201
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except PermissionError as e:
+        return parser.form_error(e, "user is already a shopkeeper", 403)
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -89,18 +89,22 @@ async def remove_access(
         return parser.form_error_bad_parsing()
 
     try:
-        if db.search("stores", "ID", storeID) is None:
-            raise lpsql.exceptions.IDNotFound
-        if db.search("users", "ID", userID) is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            if await session.get(db.Store, storeID) is None or await session.get(db.User, userID) is None:
+                raise db.exceptions.NotFound
 
-        db.manual(f"delete from shopkeepers where userID={userID}")
-        firewall4.manual(f"delete from stores where ID={userID}")
+            async with session.begin():
+                shopkeeper = (await session.scalars(
+                    db.select(db.Shopkeeper).where(db.Shopkeeper.userID == userID).with_for_update()
+                )).one_or_none()
+                firewall_entry = await session.get(db.FirewallStoresEntry, userID, with_for_update=True)
+                session.delete(shopkeeper)
+                session.delete(firewall_entry)
         return JSONResponse(
             {"ok": True},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

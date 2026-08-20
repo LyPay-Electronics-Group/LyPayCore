@@ -1,18 +1,19 @@
 from os import mkdir, listdir, getenv as getenvy, getcwd as cwd, remove
 from os.path import exists
 from subprocess import run
+from asyncio import run as a_run
 
 from platform import system as get_platform_name
 from dotenv import load_dotenv as load_dotenvy
 
-import sqlite3
-
 from colorama import Fore as F, Style as S, init as c_init, just_fix_windows_console
 
 from data import config as cfg
-from scripts import j2, lpsql
+from scripts import j2
 from scripts.unix import unix
 from scripts.memory import qr
+import database as db
+from sqlalchemy.exc import SQLAlchemyError, OperationalError
 
 c_init(autoreset=True)
 if get_platform_name() == "Windows":
@@ -23,7 +24,7 @@ class Launcher:
     """
     Лаунчер LyPay
 
-    (c) LyPay v2.3
+    based on LyPay v2.3 (c)
     """
 
     def __init__(self):
@@ -51,7 +52,7 @@ class Launcher:
             'settings':        ['set', 'read', 'current', 'update'],
             'launch':          [''],
             'shutdown':        [''],
-            'firewall4 (fw4)': ['<route> -read <ID>', '<route> -addw <ID> [...]', '<route> -removew <ID>',
+            'firewall5 (fw5)': ['<route> -read <ID>', '<route> -addw <ID> [...]', '<route> -removew <ID>',
                                 '<route> -addb <ID> [...]', '<route> -removeb <ID>', '<route> -close', '<route> -list'],
             'extra':           ['-user <ID> <login> <password> <name>_<surname> <class> <email>',
                                 '-store <hostID> [<ID>]', '-delete <user (u) | store (s)> <ID>'],
@@ -76,9 +77,7 @@ class Launcher:
 
         print(F.LIGHTBLACK_EX + S.BRIGHT + "Checking the main database...", end=' ')
         try:
-            self.db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
-            self.fw = lpsql.DataBase(cfg.PATHS.FIREWALL_DB, lpsql.Tables.FIREWALL)
-            length = len(self.db.searchall("users", "ID"))
+            length = self.__execute_sql("SELECT COUNT(*) FROM users")[0][0]
             print(F.LIGHTGREEN_EX + f"{length} user{'s' if length > 1 else ''} found")
         except Exception as e:
             bad_exit = True
@@ -92,33 +91,33 @@ class Launcher:
                 exit()
 
         print(F.LIGHTBLACK_EX + S.BRIGHT + "Auction compatibility check...", end=' ')
-        if self.db.searchall("stores", "ID").count("auction_transfer_route") == 0:
-            self.db.insert("stores", [
-                "auction_transfer_route",  # ID
-                "Покупка лотов аукциона",  # name
-                0,                         # hostID
-                "auction_transfer_route",  # description
-                False,                     # logo
-                0,                         # balance
-                None,                      # hostEmail
-                0,                         # auctionID
-                None                       # placeID
-            ])
+        if self.__execute_sql("SELECT COUNT(*) FROM stores WHERE ID = 'auction_transfer_route'")[0][0] == 0:
+            self.__execute_sql("INSERT INTO stores VALUES ("
+                "'auction_transfer_route',"  # ID
+                "'Покупка лотов аукциона',"  # name
+                "0,"                         # hostID
+                "'auction_transfer_route',"  # description
+                "FALSE,"                     # avatar
+                "0,"                         # balance
+                "'',"                        # hostEmail
+                "0,"                         # auctionID
+                "NULL"                       # placeID
+            ")")
             print(F.LIGHTYELLOW_EX + S.NORMAL + "CREATED (1/2)", end=' ')
         else:
             print(F.LIGHTGREEN_EX + S.NORMAL + "OK (1/2)", end=' ')
-        if self.db.searchall("stores", "ID").count("auction_lottery_route") == 0:
-            self.db.insert("stores", [
-                "auction_lottery_route",   # ID
-                "Беспроигрышная лотерея",  # name
-                0,                         # hostID
-                "auction_lottery_route",   # description
-                False,                     # logo
-                0,                         # balance
-                None,                      # hostEmail
-                0,                         # auctionID
-                None                       # placeID
-            ])
+        if self.__execute_sql("SELECT COUNT(*) FROM stores WHERE ID = 'auction_lottery_route'")[0][0] == 0:
+            self.__execute_sql("INSERT INTO stores VALUES ("
+                "'auction_lottery_route',"    # ID
+                "'Покупка билетов лотереи',"  # name
+                "0,"                          # hostID
+                "'auction_lottery_route',"    # description
+                "FALSE,"                      # avatar
+                "0,"                          # balance
+                "'',"                         # hostEmail
+                "0,"                          # auctionID
+                "NULL"                        # placeID
+            ")")
             print(F.LIGHTYELLOW_EX + S.NORMAL + "CREATED (2/2)")
         else:
             print(F.LIGHTGREEN_EX + S.NORMAL + "OK (2/2)")
@@ -189,6 +188,18 @@ class Launcher:
             print(S.DIM + F.GREEN + f"[{command}]" + F.LIGHTBLACK_EX + f"({info})")
         self.last_success = command
 
+    @staticmethod
+    async def __execute_sql_async(query: str, tuple_mode: bool = True):
+        async with db.session_link() as session:
+            async with session.begin():
+                if tuple_mode:
+                    return list(map(tuple, (await session.execute(db.text(query))).all()))
+                else:
+                    return [dict(t) for t in (await session.execute(db.text(query))).mappings().all()]
+
+    def __execute_sql(self, query: str, tuple_mode: bool = True):
+        return a_run(self.__execute_sql_async(query, tuple_mode))
+
 
     def help(self):
         print(F.LIGHTBLACK_EX + S.BRIGHT + "HELP page")
@@ -256,26 +267,26 @@ class Launcher:
         elif len(args) == 2:
             route = args[0].lower()
             if route not in ('main', 'stores', 'admins', 'high'):
-                self.error_handle("firewall4.argument", "KeyError", f"Bad route name: {route}")
+                self.error_handle("firewall5.argument", "KeyError", f"Bad route name: {route}")
                 return
 
             command = args[1]
             try:
                 if command == '-close':
-                    self.fw.manual(f"DELETE FROM {route}")
-                    self.success_handle("firewall4.close", "Success")
+                    self.__execute_sql(f"DELETE FROM firewall.{route}")
+                    self.success_handle("firewall5.close", "Success")
                 elif command == '-list':
-                    print('whitelist:', *tuple(map(lambda r: r["ID"], self.fw.search(route, "access", 1, True))))
-                    print('blacklist:', *tuple(map(lambda r: r["ID"], self.fw.search(route, "access", 0, True))))
+                    print('whitelist:', *tuple(map(lambda r: r[0], self.__execute_sql(f"SELECT ID FROM firewall.{route} WHERE access IS TRUE"))))
+                    print('blacklist:', *tuple(map(lambda r: r[0], self.__execute_sql(f"SELECT ID FROM firewall.{route} WHERE access IS FALSE"))))
                 else:
-                    self.error_handle("firewall4.argument", "ArgumentError", f"Can't parse provided arguments {args}")
+                    self.error_handle("firewall5.argument", "ArgumentError", f"Can't parse provided arguments {args}")
             except:
-                self.error_handle("firewall4.dbIO", "IOError", "Couldn't read from the database")
+                self.error_handle("firewall5.dbIO", "IOError", "Couldn't read from the database")
 
         elif len(args) >= 3:
             route = args[0].lower()
             if route not in ('main', 'stores', 'admins', 'high'):
-                self.error_handle("firewall4.argument", "KeyError", f"Bad route name: {route}")
+                self.error_handle("firewall5.argument", "KeyError", f"Bad route name: {route}")
                 return
 
             command = args[1]
@@ -283,7 +294,7 @@ class Launcher:
             try:
                 ID = int(args[2])
             except ValueError:
-                self.error_handle("firewall4.argument", "KeyError", f"Bad ID parse attempt: {args[2]}")
+                self.error_handle("firewall5.argument", "KeyError", f"Bad ID parse attempt: {args[2]}")
                 return
 
             if len(args) > 3:
@@ -292,43 +303,37 @@ class Launcher:
                 comment = ''
 
             if command == '-addw':
-                self.fw.insert(route, [
-                    ID,      # ID
-                    unix(),  # unix
-                    True,    # access
-                    comment  # comment
-                ])
-                self.success_handle("firewall4.add_white", "Success")
+                self.__execute_sql(f"INSERT INTO firewall.{route} VALUES ("
+                                   f"{ID},"      # ID
+                                   f"{unix()},"  # unix
+                                   "TRUE,"       # access
+                                   f"{comment}"  # comment
+                                   ")")
+                self.success_handle("firewall5.add_white", "Success")
             elif command == '-removew':
-                self.fw.manual(f"DELETE FROM {route} WHERE ID = {ID} AND access = 1")
-                self.success_handle("firewall4.remove_white", "Success")
+                self.__execute_sql(f"DELETE FROM firewall.{route} WHERE ID = {ID} AND access IS TRUE")
+                self.success_handle("firewall5.remove_white", "Success")
             elif command == '-addb':
-                self.fw.insert(route, [
-                    ID,      # ID
-                    unix(),  # unix
-                    False,   # access
-                    comment  # comment
-                ])
-                self.success_handle("firewall4.add_black", "Success")
+                self.__execute_sql(f"INSERT INTO firewall.{route} VALUES ("
+                                   f"{ID},"      # ID
+                                   f"{unix()},"  # unix
+                                   "FALSE,"      # access
+                                   f"{comment}"  # comment
+                                   ")")
+                self.success_handle("firewall5.add_black", "Success")
             elif command == '-removeb':
-                self.fw.manual(f"DELETE FROM {route} WHERE ID = {ID} AND access = 0")
-                self.success_handle("firewall4.remove_black", "Success")
+                self.__execute_sql(f"DELETE FROM firewall.{route} WHERE ID = {ID} AND access IS FALSE")
+                self.success_handle("firewall5.remove_black", "Success")
             elif command == '-read':
-                self.sql(f"SELECT * FROM {route}", 'fw')
-                self.success_handle("firewall4.read", "Success")
+                self.sql(f"SELECT * FROM firewall.{route}")
+                self.success_handle("firewall5.read", "Success")
             else:
-                self.error_handle("firewall4.argument", "ArgumentError", f"Can't parse provided arguments {args}")
+                self.error_handle("firewall5.argument", "ArgumentError", f"Can't parse provided arguments {args}")
 
 
-    def sql(self, arg: str, db: str = 'main'):
+    def sql(self, arg: str):
         try:
-            if db == 'main':
-                query = self.db.manual(arg)
-            elif db == 'fw':
-                query = self.fw.manual(arg)
-            else:
-                self.error_handle("sql.argument", "ArgumentError", f"Can't parse provided route: {db}")
-                return
+            query = self.__execute_sql(arg)
 
             if len(query) > 0:
                 query = list(map(lambda item: list(map(str, item)), query))
@@ -342,8 +347,8 @@ class Launcher:
                     for i in range(len(line)):
                         print(line[i], end=' ' * (max_seps[i] + 3 - len(line[i])))
                     print()
-        except sqlite3.Error as e:
-            self.error_handle("search.sql", "sqlite3Error", e.__str__())
+        except (SQLAlchemyError, OperationalError) as e:
+            self.error_handle("search.sql", "baseError", e.__str__())
         except Exception as e:
             if self.settings_array["show_unknown_errors"]:
                 self.error_handle("search.sql", "Unknown", "Unknown error: " + e.__str__())
@@ -357,34 +362,28 @@ class Launcher:
             if args[0] == '-store':
                 try:
                     hostID = args[1]
-                    last_index = len([store for store in self.db.searchall("stores", "ID") if store[0] == 'i'])
+                    last_index = self.__execute_sql("SELECT COUNT(*) FROM stores WHERE ID LIKE 'i%'")[0][0]
                     try:
                         storeID = args[2]
                     except IndexError:
                         storeID = f"i{str(last_index + 1).zfill(2)}"
 
-                    self.firewall("stores", "-addw", hostID, "added via extra command")
-                    self.db.insert(
-                        "stores",
-                        [
-                            storeID,                                               # ID
-                            storeID,                                               # name
-                            hostID,                                                # hostID
-                            f"generated by Launcher Extra at {round(unix(), 2)}",  # description
-                            False,                                                 # logo
-                            0,                                                     # balance
-                            None,                                                  # hostEmail
-                            None,                                                  # auctionID
-                            None                                                   # placeID
-                        ]
-                    )
-                    self.db.insert(
-                        "shopkeepers",
-                        [
-                            hostID,  # userID
-                            storeID  # storeID
-                        ]
-                    )
+                    self.firewall("stores", "-addw", hostID, "added via launcher extra")
+                    self.__execute_sql("INSERT INTO stores VALUES ("
+                        f"{storeID},"                                            # ID
+                        f"{storeID},"                                            # name
+                        f"{hostID},"                                             # hostID
+                        f"'generated by Launcher Extra at {round(unix(), 2)}',"  # description
+                        "FALSE,"                                                 # avatar
+                        "0,"                                                     # balance
+                        "'',"                                                    # hostEmail
+                        "None,"                                                  # auctionID
+                        "None"                                                   # placeID
+                    ")")
+                    self.__execute_sql("INSERT INTO shopkeepers VALUES ("
+                        f"{hostID},"  # userID
+                        f"{storeID}"  # storeID
+                    ")")
                     self.success_handle("extra.store", "Successfully added a store")
                 except:
                     self.error_handle("extra.argument", "ArgumentError", f"Can't parse the following arguments: {args[1:]}")
@@ -398,22 +397,19 @@ class Launcher:
                     group = args[5]
                     email = args[6]
 
-                    self.db.insert(
-                        "users",
-                        [
-                            ID,        # ID
-                            name,      # name
-                            login,     # login
-                            password,  # password
-                            group,     # class
-                            email,     # email
-                            None,      # tag
-                            0,         # balance
-                            'manual',  # owner
-                            unix(),    # last_online
-                            False      # avatar
-                        ]
-                    )
+                    self.__execute_sql("INSERT INTO users VALUES ("
+                        f"{ID},"        # ID
+                        f"{name},"      # name
+                        f"{login},"     # login
+                        f"{password},"  # password
+                        f"{group},"     # class
+                        f"{email},"     # email
+                        "NONE,"         # tag
+                        "0,"            # balance
+                        "'manual',"     # owner
+                        f"{unix()},"    # last_online
+                        "FALSE"         # avatar
+                    ")")
                     if not exists(cfg.PATHS.QR + f"{ID}.png"):
                         qr(ID)
 
@@ -427,9 +423,9 @@ class Launcher:
                     ID = args[2]
 
                     if route == 'user' or route == 'u':
-                        if self.db.search("users", "ID", ID) is not None:
-                            self.db.manual(f"DELETE FROM users WHERE ID = {ID}")
-                            self.fw.manual(f"DELETE FROM main WHERE ID = {ID}")
+                        if self.__execute_sql(f"SELECT COUNT(*) FROM users WHERE ID = {ID}")[0][0] > 0:
+                            self.__execute_sql(f"DELETE FROM users WHERE ID = {ID}")
+                            self.__execute_sql(f"DELETE FROM main WHERE ID = {ID}")
                             if exists(cfg.PATHS.QR + f"{ID}.png"):
                                 remove(cfg.PATHS.QR + f"{ID}.png")
                             if exists(cfg.PATHS.USERS_AVATARS + f"{ID}.jpg"):
@@ -438,11 +434,15 @@ class Launcher:
                         else:
                             self.error_handle("extra.delete", "IDNotFoundError", "User does not exist")
                     elif route == 'store' or route == 's':
-                        if self.db.search("stores", "ID", ID) is not None:
-                            for shopkeeper in self.db.search("shopkeepers", "storeID", ID, True):
-                                self.fw.manual(f"DELETE FROM stores WHERE ID = {shopkeeper["userID"]}")
-                            self.db.manual(f"DELETE FROM stores WHERE ID LIKE \"{ID}\"")
-                            self.db.manual(f"DELETE FROM shopkeepers WHERE storeID LIKE \"{ID}\"")
+                        if self.__execute_sql(f"SELECT COUNT(*) FROM stores WHERE ID = {ID}")[0][0] > 0:
+                            self.__execute_sql(f"""
+                                DELETE FROM firewall.stores 
+                                WHERE ID IN (
+                                    SELECT userID FROM shopkeepers WHERE storeID = '{ID}'
+                                )
+                            """)
+                            self.__execute_sql(f"DELETE FROM stores WHERE ID = {ID}")
+                            self.__execute_sql(f"DELETE FROM shopkeepers WHERE storeID = {ID}")
                             if exists(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"):
                                 remove(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
                             self.success_handle("extra.delete", "Successfully deleted a store")

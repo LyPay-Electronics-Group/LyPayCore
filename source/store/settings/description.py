@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser, censor
+from scripts import parser, censor
 from scripts.token_validator import token_validate_factory as TVF
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
 
 
 @router.get("/get")
@@ -19,15 +19,16 @@ async def get_description(
         return parser.form_error_bad_parsing()
 
     try:
-        store = db.search("stores", "ID", ID)
-        if store is None:
-            raise lpsql.exceptions.IDNotFound()
+        async with db.session_link() as session:
+            store = await session.get(db.Store, ID)
+            if store is None:
+                raise db.exceptions.NotFound
 
         return JSONResponse(
-            {"result": store["description"]},
+            {"result": store.description},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -43,21 +44,22 @@ async def update_description(
         return parser.form_error_bad_parsing()
     if new is None:
         new = ""
+    if not censor.check_store_description(new):
+        return parser.form_error(AttributeError(), "bad censor flag: desc", 406)
 
     try:
-        store = db.search("stores", "ID", ID)
-        if store is None:
-            raise lpsql.exceptions.IDNotFound()
+        async with db.session_link() as session:
+            async with session.begin():
+                store = await session.get(db.Store, ID, with_for_update=True)
+                if store is None:
+                    raise db.exceptions.NotFound
+                store.description = new
 
-        if not censor.check_store_description(new):
-            return parser.form_error(AttributeError(), "bad censor flag: desc", 406)
-
-        db.update("stores", "ID", ID, "description", new)
         return JSONResponse(
             {"ok": True},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)

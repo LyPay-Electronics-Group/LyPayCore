@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends as D
 from fastapi.responses import JSONResponse
 
-from scripts import lpsql, parser, censor
+from scripts import parser, censor
 from scripts.token_validator import token_validate_factory as TVF
 from scripts.idgen import IDGenerator
 from data import config as cfg
+import database as db
 
 
 router = APIRouter()
-db = lpsql.DataBase(cfg.PATHS.MAIN_DB, lpsql.Tables.MAIN)
-idgen = IDGenerator(db)
+idgen = IDGenerator()
 
 
 @router.get("/get")
@@ -21,15 +21,16 @@ async def get_item(
         return parser.form_error_bad_parsing()
 
     try:
-        search_result = db.search("items", "itemID", itemID)
-        if search_result is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            search_result = await session.get(db.Item, itemID)
+            if search_result is None:
+                raise db.exceptions.NotFound
 
         return JSONResponse(
-            search_result,
+            search_result.as_dict(),
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -46,19 +47,22 @@ async def get_all_items(
 
     inactive_filter = not bool(active_filter)
     try:
-        if db.search("stores", "ID", storeID) is None:
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            if await session.get(db.Store, storeID) is None:
+                raise db.exceptions.NotFound
 
-        search_result = list()
-        for item in db.search("items", "storeID", storeID, True):
-            if item['active'] or inactive_filter:
-                search_result.append(item["itemID"])
+            search_result = (await session.scalars(
+                db.select(db.Item.itemID).where(
+                    db.Item.storeID == storeID,
+                    db.or_(inactive_filter, db.Item.active.is_(True))
+                )
+            )).all()
 
         return JSONResponse(
             {"result": search_result},
             status_code=200
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -80,23 +84,25 @@ async def create_item(
         return parser.form_error(AttributeError(), "bad censor flag: store item price", 406)
 
     try:
-        if storeID not in db.searchall("stores", "ID"):
-            raise lpsql.exceptions.IDNotFound
+        async with db.session_link() as session:
+            async with session.begin():
+                if await session.get(db.Store, storeID) is None:
+                    raise db.exceptions.NotFound
 
-        itemID = await idgen.itemID(storeID)
+                itemID = await idgen.itemID(storeID, session)
+                session.add(db.Item(
+                    itemID=itemID,
+                    storeID=storeID,
+                    name=name,
+                    price=price,
+                    active=True
+                ))
 
-        db.insert("items", [
-            itemID,
-            storeID,
-            name,
-            price,
-            True    # active flag
-        ])
         return JSONResponse(
             {'generated': itemID},
             status_code=201
         )
-    except lpsql.exceptions.IDNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -111,13 +117,18 @@ async def remove_item(
         return parser.form_error_bad_parsing()
 
     try:
-        db.update("items", "itemID", itemID, "active", False)
+        async with db.session_link() as session:
+            async with session.begin():
+                item = await session.get(db.Item, itemID, with_for_update=True)
+                if item is None:
+                    raise db.exceptions.NotFound
+                item.active = False
 
         return JSONResponse(
             {'ok': True},
             status_code=200
         )
-    except lpsql.exceptions.EntryNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
@@ -135,33 +146,35 @@ async def edit_item(
 
     if name is not None and not censor.check_store_item_name(name):
         return parser.form_error(AttributeError(), "bad censor flag: store item name", 406)
-    if price is not None and price < 0:
+    if price is not None and price <= 0:
         return parser.form_error(AttributeError(), "bad censor flag: store item price", 406)
 
     try:
-        item = db.search("items", "itemID", itemID)
-        if name is not None:
-            item["name"] = name
-        if price is not None:
-            item["price"] = price
+        async with db.session_link() as session:
+            async with session.begin():
+                item = await session.get(db.Item, itemID, with_for_update=True)
+                if item is None:
+                    raise db.exceptions.NotFound
+                if name is None:
+                    name = item.name
+                if price is None:
+                    price = item.price
+                item.active = False
 
-        db.update("items", "itemID", itemID, "active", False)
-
-        storeID = item["storeID"]
-        itemID = await idgen.itemID(storeID)
-        db.insert("items", [
-            itemID,
-            storeID,
-            item["name"],
-            item["price"],
-            True    # active flag
-        ])
+                itemID = await idgen.itemID(item.storeID, session)
+                session.add(db.Item(
+                    itemID=itemID,
+                    storeID=item.storeID,
+                    name=name,
+                    price=price,
+                    active=True
+                ))
 
         return JSONResponse(
             {'updated': itemID},
             status_code=200
         )
-    except lpsql.exceptions.EntryNotFound as e:
+    except db.exceptions.NotFound as e:
         return parser.form_error(e, "ID not found", 404)
     except Exception as e:
         return parser.form_error(e)
