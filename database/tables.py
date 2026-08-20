@@ -16,17 +16,18 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 # SCHEMA : Public
 
-class __AccessCodesBase(Base):
+class AccessCodesGuest(Base):
+    __tablename__ = "access_codes_guest"
+
     code:  Mapped[str] = mapped_column(TEXT, primary_key=True)
     email: Mapped[str] = mapped_column(TEXT, unique=True)
 
 
-class AccessCodesGuest(__AccessCodesBase):
-    __tablename__ = "access_codes_guest"
-
-
-class AccessCodesMain(__AccessCodesBase):
+class AccessCodesMain(Base):
     __tablename__ = "access_codes_main"
+
+    code:  Mapped[str] = mapped_column(TEXT, primary_key=True)
+    email: Mapped[str] = mapped_column(TEXT, unique=True)
 
 
 class Lot(Base):
@@ -75,10 +76,11 @@ class FPS(Base):
 class HistoryEntry(Base):
     __tablename__ = "history"
 
-    ID_out: Mapped[str]   = mapped_column(TEXT)
-    ID_in:  Mapped[str]   = mapped_column(TEXT)
-    value:  Mapped[int]   = mapped_column(INTEGER)
-    unix:   Mapped[float] = mapped_column(REAL)
+    ID_out:   Mapped[str]   = mapped_column(TEXT)
+    ID_in:    Mapped[str]   = mapped_column(TEXT)
+    value:    Mapped[int]   = mapped_column(INTEGER)
+    unix:     Mapped[float] = mapped_column(REAL)
+    trns_srl: Mapped[int]   = mapped_column(primary_key=True, autoincrement=True)
 
 
 class Item(Base):
@@ -118,8 +120,11 @@ class Shopkeeper(Base):
     )
 
 
-class StoreFormLink(__AccessCodesBase):
+class StoreFormLink(Base):
     __tablename__ = "store_form_link"
+
+    code:  Mapped[str] = mapped_column(TEXT, primary_key=True)
+    email: Mapped[str] = mapped_column(TEXT, unique=True)
 
 
 class Store(Base):
@@ -154,27 +159,40 @@ class User(Base):
 
 # SCHEMA : Firewall
 
-class __FirewallBaseClass(Base):
+class FirewallAdminsEntry(Base):
+    __tablename__ = "firewall.admins"
+
     ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
     access:  Mapped[bool]       = mapped_column(BOOLEAN)
     comment: Mapped[str | None] = mapped_column(TEXT)
 
 
-class FirewallAdminsEntry(__FirewallBaseClass):
-    __tablename__ = "firewall.admins"
-
-
-class FirewallHighEntry(__FirewallBaseClass):
+class FirewallHighEntry(Base):
     __tablename__ = "firewall.high"
 
+    ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
+    unix:    Mapped[float]      = mapped_column(REAL)
+    access:  Mapped[bool]       = mapped_column(BOOLEAN)
+    comment: Mapped[str | None] = mapped_column(TEXT)
 
-class FirewallMainEntry(__FirewallBaseClass):
+
+class FirewallMainEntry(Base):
     __tablename__ = "firewall.main"
 
+    ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
+    unix:    Mapped[float]      = mapped_column(REAL)
+    access:  Mapped[bool]       = mapped_column(BOOLEAN)
+    comment: Mapped[str | None] = mapped_column(TEXT)
 
-class FirewallStoresEntry(__FirewallBaseClass):
+
+class FirewallStoresEntry(Base):
     __tablename__ = "firewall.stores"
+
+    ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
+    unix:    Mapped[float]      = mapped_column(REAL)
+    access:  Mapped[bool]       = mapped_column(BOOLEAN)
+    comment: Mapped[str | None] = mapped_column(TEXT)
 
 
 __all__ = (
