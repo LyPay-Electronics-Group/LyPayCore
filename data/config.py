@@ -1,4 +1,6 @@
 ﻿from os import getcwd as cwd, getenv as getenvy
+from dotenv import load_dotenv as load_dotenvy
+load_dotenvy(".envy")
 
 
 class PATHS:
@@ -16,9 +18,6 @@ class PATHS:
     USERS_AVATARS = USERS + 'avatars/'
 
     LAUNCH_SETTINGS = DATA + 'settings.json'
-
-    MAIN_DB = DATA + "lypay_database.db"
-    FIREWALL_DB = DATA + "lypay_firewall.db"
 
     all = (DATA, QR, STORES, EMAIL, STORES_ITEMS, STORES_AVATARS)
 
