@@ -15,11 +15,6 @@ from scripts.memory import qr
 import database as db
 from sqlalchemy.exc import SQLAlchemyError, OperationalError, IntegrityError
 
-c_init(autoreset=True)
-db.disable_pre_ping()
-if get_platform_name() == "Windows":
-    just_fix_windows_console()
-
 
 class Launcher:
     """
@@ -29,24 +24,12 @@ class Launcher:
     """
 
     def __init__(self):
+        c_init(autoreset=True)
+        db.disable_pre_ping()
+        if get_platform_name() == "Windows":
+            just_fix_windows_console()
+
         print(F.LIGHTBLACK_EX + S.BRIGHT + "Initializing...", end=' ')
-        if not exists(cfg.PATHS.LAUNCH_SETTINGS):
-            with open(cfg.PATHS.LAUNCH_SETTINGS, 'w') as f:
-                f.write(j2.to_({
-                    "launch":                        False,
-                    "auto_restart_cmd":              None,
-                    "auction":                       False,
-                    "user_can_register":             True,
-                    "user_can_register_via_linking": False,
-                    "user_can_deposit":              False,
-                    "user_can_transfer":             False,
-                    "user_can_use_promo":            False,
-                    "store_can_register":            False,
-                    "store_can_send_ad":             False,
-                    "store_show_placement_data":     False,
-                    "show_unknown_errors":           True,
-                    "last_launch":                   0
-                }))
 
         self.commands = {
             'exit':            [''],
@@ -492,17 +475,20 @@ class Launcher:
 
     def launch(self):
         if get_platform_name() == 'Linux':
-            startup = (
-                f'cd "{cfg.PATHS.CWD}";'
-                'source ./.venv/bin/activate;'
-                'clear;'
-                'python startup.py'
-            )
             try:
-                run(['tmux', 'new-window', '-n', 'core', 'bash', '-c', startup], check=True)
+                run(
+                    (
+                        'tmux', 'new-window', '-n', 'core', '-c', f"{cfg.PATHS.CWD}",
+                        "clear && "
+                        "source ./.venv/bin/activate && "
+                        "python launcher.py launch"
+                    ),
+                    check=True
+                )
                 self.success_handle("launch.startup", "Successfully started the server")
             except Exception as e:
                 self.error_handle("launch.startup", f"Failed to start a process: {e}")
+
         else:
             print("unsupported platform (for now)")
 
@@ -516,3 +502,6 @@ class Launcher:
                 self.error_handle("shutdown.shutdown", f"Failed to shutdown a process: {e}")
         else:
             print("unsupported platform (for now)")
+
+
+__all__ = ('Launcher',)
