@@ -3,7 +3,7 @@ from os import getenv
 
 
 class AsyncDatabase:
-    def __init__(self):
+    def __init__(self, pool_pre_ping: bool = True):
         self.engine = create_async_engine(
             "postgresql+asyncpg://{user}:{password}@{host}:{port}/{database}".format(
                 user=getenv("LYPAY_DB_USER"),
@@ -12,7 +12,7 @@ class AsyncDatabase:
                 port=getenv("LYPAY_DB_PORT", 5432),
                 database=getenv("LYPAY_DB_NAME")
             ),
-            pool_pre_ping=True, echo=False
+            pool_pre_ping=pool_pre_ping, echo=False
         )
 
     def get_engine(self):

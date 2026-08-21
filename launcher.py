@@ -4,6 +4,7 @@ c_init(autoreset=True)
 
 
 launcher = Launcher()
+launcher.setup()
 
 auto_restart = launcher.settings_array["auto_restart_cmd"]
 if auto_restart is not None:
@@ -26,11 +27,11 @@ while True:
     elif cmd[0] == 'help' or cmd[0] == 'h':
         launcher.help()
     #
-    elif cmd[0] == 'firewall4' or cmd[0] == 'fw4':
+    elif cmd[0] == 'firewall5' or cmd[0] == 'fw5':
         try:
             launcher.firewall(*cmd[1:])
         except IndexError:
-            launcher.error_handle("firewall4.argument", "ArgumentError",
+            launcher.error_handle("firewall5.argument", "ArgumentError",
                                   "You need to specify an argument for this command!")
     #
     elif cmd[0] == 'launch':
@@ -64,5 +65,3 @@ while True:
     raw_cmd = input(S.NORMAL + F.GREEN + ">>> " + F.LIGHTGREEN_EX).strip().split()
     cmd = list(map(lambda s: s.lower(), raw_cmd))
     print(F.RESET + S.RESET_ALL, end='')
-
-launcher.close()

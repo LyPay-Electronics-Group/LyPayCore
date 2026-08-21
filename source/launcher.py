@@ -1,7 +1,7 @@
 from os import mkdir, listdir, getenv as getenvy, getcwd as cwd, remove
 from os.path import exists
 from subprocess import run
-from asyncio import run as a_run
+from asyncio import new_event_loop, set_event_loop
 
 from platform import system as get_platform_name
 from dotenv import load_dotenv as load_dotenvy
@@ -16,6 +16,7 @@ import database as db
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 
 c_init(autoreset=True)
+db.disable_pre_ping()
 if get_platform_name() == "Windows":
     just_fix_windows_console()
 
@@ -28,6 +29,7 @@ class Launcher:
     """
 
     def __init__(self):
+        print(F.LIGHTBLACK_EX + S.BRIGHT + "Initializing...", end=' ')
         if not exists(cfg.PATHS.LAUNCH_SETTINGS):
             with open(cfg.PATHS.LAUNCH_SETTINGS, 'w') as f:
                 f.write(j2.to_({
@@ -63,19 +65,26 @@ class Launcher:
         self.last_error, self.last_success = None, None
         self.platform = get_platform_name()
 
-        print(F.LIGHTBLACK_EX + S.BRIGHT + "Filling config.PATHS...", end=' ')
+        self.loop = new_event_loop()
+        set_event_loop(self.loop)
+
+        print(F.LIGHTGREEN_EX + "OK")
+
+    def setup(self):
+        print(F.LIGHTBLACK_EX + S.BRIGHT + "Proceeding setup...")
+        print(F.LIGHTBLACK_EX + S.BRIGHT + "> Filling config.PATHS...", end=' ')
         created_dirs = 0
         for path in cfg.PATHS.all:
             if not exists(path) and path[path.find(cwd()) + 1 + len(cwd()):].count('.') == 0:
                 mkdir(path)
                 if created_dirs == 0:
                     print(F.LIGHTYELLOW_EX + "missing directory(-ies) found")
-                print(F.LIGHTBLACK_EX + f"> created '{path}'")
+                print(F.LIGHTBLACK_EX + f" >> created '{path}'")
                 created_dirs += 1
         if created_dirs == 0:
             print(F.LIGHTGREEN_EX + "OK")
 
-        print(F.LIGHTBLACK_EX + S.BRIGHT + "Checking the main database...", end=' ')
+        print(F.LIGHTBLACK_EX + S.BRIGHT + "> Checking the main database...", end=' ')
         try:
             length = self.__execute_sql("SELECT COUNT(*) FROM users")[0][0]
             print(F.LIGHTGREEN_EX + f"{length} user{'s' if length > 1 else ''} found")
@@ -85,12 +94,12 @@ class Launcher:
                 print(F.LIGHTRED_EX + "NOT FOUND")
             else:
                 print(F.LIGHTRED_EX + "UNKNOWN ERROR")
-            print(F.LIGHTBLACK_EX + S.BRIGHT + f" > {e.args}")
+            print(F.LIGHTBLACK_EX + S.BRIGHT + f" >> {e.args}")
             if bad_exit:
                 input(F.LIGHTBLACK_EX + S.BRIGHT + "> press 'enter' to exit <")
                 exit()
 
-        print(F.LIGHTBLACK_EX + S.BRIGHT + "Auction compatibility check...", end=' ')
+        print(F.LIGHTBLACK_EX + S.BRIGHT + "> Auction compatibility check...", end=' ')
         if self.__execute_sql("SELECT COUNT(*) FROM stores WHERE ID = 'auction_transfer_route'")[0][0] == 0:
             self.__execute_sql("INSERT INTO stores VALUES ("
                 "'auction_transfer_route',"  # ID
@@ -122,11 +131,11 @@ class Launcher:
         else:
             print(F.LIGHTGREEN_EX + S.NORMAL + "OK (2/2)")
 
-        print(F.LIGHTBLACK_EX + S.BRIGHT + "Reading ENVY config...", end=' ')
+        print(F.LIGHTBLACK_EX + S.BRIGHT + "> Reading ENVY config...", end=' ')
         found = load_dotenvy(".envy")
         if not found:
             print(F.LIGHTRED_EX + "FAILED")
-            print(F.LIGHTBLACK_EX + S.BRIGHT + " > trying to find already loaded system variables...", end=' ')
+            print(F.LIGHTBLACK_EX + S.BRIGHT + " >> trying to find already loaded system variables...", end=' ')
             loaded_env = {
                 getenvy("LYPAY_HOST"), getenvy("LYPAY_PORT"), getenvy("LYPAY_EMAIL_MAIL"), getenvy("LYPAY_EMAIL_HOST"),
                 getenvy("LYPAY_EMAIL_PORT"), getenvy("LYPAY_EMAIL_PASSWORD"), getenvy("LYPAY_PUBLIC_TOKENS"),
@@ -153,10 +162,11 @@ class Launcher:
 
         self.update_settings("launch", True)
 
-    def close(self):
+    def __del__(self):
         self.update_settings("last_launch", int(unix()))
         self.update_settings("launch", False)
         self.update_settings("launch_stamp", None)
+        self.loop.close()
 
     def update_settings(self, key: str, value) -> int:
         """
@@ -189,16 +199,19 @@ class Launcher:
         self.last_success = command
 
     @staticmethod
-    async def __execute_sql_async(query: str, tuple_mode: bool = True):
+    async def __execute_sql_async(query: str, tuple_mode: bool = True) -> None | list[dict] | list[tuple]:
         async with db.session_link() as session:
             async with session.begin():
+                result = await session.execute(db.text(query))
+
+                if not result.returns_rows:
+                    return None
                 if tuple_mode:
-                    return list(map(tuple, (await session.execute(db.text(query))).all()))
-                else:
-                    return [dict(t) for t in (await session.execute(db.text(query))).mappings().all()]
+                    return list(map(tuple, result.all()))
+                return [dict(t) for t in result.mappings().all()]
 
     def __execute_sql(self, query: str, tuple_mode: bool = True):
-        return a_run(self.__execute_sql_async(query, tuple_mode))
+        return self.loop.run_until_complete(self.__execute_sql_async(query, tuple_mode))
 
 
     def help(self):
@@ -370,8 +383,8 @@ class Launcher:
 
                     self.firewall("stores", "-addw", hostID, "added via launcher extra")
                     self.__execute_sql("INSERT INTO stores VALUES ("
-                        f"{storeID},"                                            # ID
-                        f"{storeID},"                                            # name
+                        f"'{storeID}',"                                            # ID
+                        f"'{storeID}',"                                            # name
                         f"{hostID},"                                             # hostID
                         f"'generated by Launcher Extra at {round(unix(), 2)}',"  # description
                         "FALSE,"                                                 # avatar
@@ -434,15 +447,15 @@ class Launcher:
                         else:
                             self.error_handle("extra.delete", "IDNotFoundError", "User does not exist")
                     elif route == 'store' or route == 's':
-                        if self.__execute_sql(f"SELECT COUNT(*) FROM stores WHERE ID = {ID}")[0][0] > 0:
+                        if self.__execute_sql(f"SELECT COUNT(*) FROM stores WHERE ID = '{ID}'")[0][0] > 0:
                             self.__execute_sql(f"""
                                 DELETE FROM firewall.stores 
                                 WHERE ID IN (
                                     SELECT userID FROM shopkeepers WHERE storeID = '{ID}'
                                 )
                             """)
-                            self.__execute_sql(f"DELETE FROM stores WHERE ID = {ID}")
-                            self.__execute_sql(f"DELETE FROM shopkeepers WHERE storeID = {ID}")
+                            self.__execute_sql(f"DELETE FROM stores WHERE ID = '{ID}'")
+                            self.__execute_sql(f"DELETE FROM shopkeepers WHERE storeID = '{ID}'")
                             if exists(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"):
                                 remove(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
                             self.success_handle("extra.delete", "Successfully deleted a store")
