@@ -9,3 +9,4 @@ python-multipart==0.0.22
 colorama==0.4.6
 sqlalchemy==2.0.52
 asyncpg==0.31.0
+prompt-toolkit==3.0.52
