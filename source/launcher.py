@@ -320,7 +320,7 @@ class Launcher:
                                    f"{ID},"      # ID
                                    f"{unix()},"  # unix
                                    "TRUE,"       # access
-                                   f"{comment}"  # comment
+                                   f"'{comment}'"  # comment
                                    ")")
                 self.success_handle("firewall5.add_white", "Success")
             elif command == '-removew':
@@ -331,7 +331,7 @@ class Launcher:
                                    f"{ID},"      # ID
                                    f"{unix()},"  # unix
                                    "FALSE,"      # access
-                                   f"{comment}"  # comment
+                                   f"'{comment}'"  # comment
                                    ")")
                 self.success_handle("firewall5.add_black", "Success")
             elif command == '-removeb':
