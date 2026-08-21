@@ -13,7 +13,7 @@ from scripts import j2
 from scripts.unix import unix
 from scripts.memory import qr
 import database as db
-from sqlalchemy.exc import SQLAlchemyError, OperationalError
+from sqlalchemy.exc import SQLAlchemyError, OperationalError, IntegrityError
 
 c_init(autoreset=True)
 db.disable_pre_ping()
@@ -210,7 +210,7 @@ class Launcher:
                     return list(map(tuple, result.all()))
                 return [dict(t) for t in result.mappings().all()]
 
-    def __execute_sql(self, query: str, tuple_mode: bool = True):
+    def __execute_sql(self, query: str, tuple_mode: bool = True) -> None | list[dict] | list[tuple]:
         return self.loop.run_until_complete(self.__execute_sql_async(query, tuple_mode))
 
 
@@ -293,6 +293,8 @@ class Launcher:
                     print('blacklist:', *tuple(map(lambda r: r[0], self.__execute_sql(f"SELECT ID FROM firewall.{route} WHERE access IS FALSE"))))
                 else:
                     self.error_handle("firewall5.argument", "ArgumentError", f"Can't parse provided arguments {args}")
+            except (SQLAlchemyError, OperationalError, IntegrityError) as e:
+                self.error_handle("firewall5.sql", "BaseError", e.__str__())
             except:
                 self.error_handle("firewall5.dbIO", "IOError", "Couldn't read from the database")
 
@@ -315,33 +317,36 @@ class Launcher:
             else:
                 comment = ''
 
-            if command == '-addw':
-                self.__execute_sql(f"INSERT INTO firewall.{route} VALUES ("
-                                   f"{ID},"      # ID
-                                   f"{unix()},"  # unix
-                                   "TRUE,"       # access
-                                   f"'{comment}'"  # comment
-                                   ")")
-                self.success_handle("firewall5.add_white", "Success")
-            elif command == '-removew':
-                self.__execute_sql(f"DELETE FROM firewall.{route} WHERE ID = {ID} AND access IS TRUE")
-                self.success_handle("firewall5.remove_white", "Success")
-            elif command == '-addb':
-                self.__execute_sql(f"INSERT INTO firewall.{route} VALUES ("
-                                   f"{ID},"      # ID
-                                   f"{unix()},"  # unix
-                                   "FALSE,"      # access
-                                   f"'{comment}'"  # comment
-                                   ")")
-                self.success_handle("firewall5.add_black", "Success")
-            elif command == '-removeb':
-                self.__execute_sql(f"DELETE FROM firewall.{route} WHERE ID = {ID} AND access IS FALSE")
-                self.success_handle("firewall5.remove_black", "Success")
-            elif command == '-read':
-                self.sql(f"SELECT * FROM firewall.{route}")
-                self.success_handle("firewall5.read", "Success")
-            else:
-                self.error_handle("firewall5.argument", "ArgumentError", f"Can't parse provided arguments {args}")
+            try:
+                if command == '-addw':
+                    self.__execute_sql(f"INSERT INTO firewall.{route} VALUES ("
+                                       f"{ID},"      # ID
+                                       f"{unix()},"  # unix
+                                       "TRUE,"       # access
+                                       f"'{comment}'"  # comment
+                                       ")")
+                    self.success_handle("firewall5.add_white", "Success")
+                elif command == '-removew':
+                    self.__execute_sql(f"DELETE FROM firewall.{route} WHERE ID = {ID} AND access IS TRUE")
+                    self.success_handle("firewall5.remove_white", "Success")
+                elif command == '-addb':
+                    self.__execute_sql(f"INSERT INTO firewall.{route} VALUES ("
+                                       f"{ID},"      # ID
+                                       f"{unix()},"  # unix
+                                       "FALSE,"      # access
+                                       f"'{comment}'"  # comment
+                                       ")")
+                    self.success_handle("firewall5.add_black", "Success")
+                elif command == '-removeb':
+                    self.__execute_sql(f"DELETE FROM firewall.{route} WHERE ID = {ID} AND access IS FALSE")
+                    self.success_handle("firewall5.remove_black", "Success")
+                elif command == '-read':
+                    self.sql(f"SELECT * FROM firewall.{route} WHERE ID = {ID}")
+                    self.success_handle("firewall5.read", "Success")
+                else:
+                    self.error_handle("firewall5.argument", "ArgumentError", f"Can't parse provided arguments {args}")
+            except (SQLAlchemyError, OperationalError, IntegrityError) as e:
+                self.error_handle("firewall5.sql", "BaseError", e.__str__())
 
 
     def sql(self, arg: str):
@@ -360,8 +365,8 @@ class Launcher:
                     for i in range(len(line)):
                         print(line[i], end=' ' * (max_seps[i] + 3 - len(line[i])))
                     print()
-        except (SQLAlchemyError, OperationalError) as e:
-            self.error_handle("search.sql", "baseError", e.__str__())
+        except (SQLAlchemyError, OperationalError, IntegrityError) as e:
+            self.error_handle("search.sql", "BaseError", e.__str__())
         except Exception as e:
             if self.settings_array["show_unknown_errors"]:
                 self.error_handle("search.sql", "Unknown", "Unknown error: " + e.__str__())
@@ -398,6 +403,8 @@ class Launcher:
                         f"{storeID}"  # storeID
                     ")")
                     self.success_handle("extra.store", "Successfully added a store")
+                except (SQLAlchemyError, OperationalError, IntegrityError) as e:
+                    self.error_handle("extra.sql", "BaseError", e.__str__())
                 except:
                     self.error_handle("extra.argument", "ArgumentError", f"Can't parse the following arguments: {args[1:]}")
 
@@ -427,6 +434,8 @@ class Launcher:
                         qr(ID)
 
                     self.success_handle("extra.user", "Successfully added a user")
+                except (SQLAlchemyError, OperationalError, IntegrityError) as e:
+                    self.error_handle("extra.sql", "BaseError", e.__str__())
                 except:
                     self.error_handle("extra.argument", "ArgumentError", f"Can't parse the following arguments: {args[1:]}")
 
@@ -436,31 +445,37 @@ class Launcher:
                     ID = args[2]
 
                     if route == 'user' or route == 'u':
-                        if self.__execute_sql(f"SELECT COUNT(*) FROM users WHERE ID = {ID}")[0][0] > 0:
-                            self.__execute_sql(f"DELETE FROM users WHERE ID = {ID}")
-                            self.__execute_sql(f"DELETE FROM main WHERE ID = {ID}")
-                            if exists(cfg.PATHS.QR + f"{ID}.png"):
-                                remove(cfg.PATHS.QR + f"{ID}.png")
-                            if exists(cfg.PATHS.USERS_AVATARS + f"{ID}.jpg"):
-                                remove(cfg.PATHS.USERS_AVATARS + f"{ID}.jpg")
-                            self.success_handle("extra.delete", "Successfully deleted a user")
-                        else:
-                            self.error_handle("extra.delete", "IDNotFoundError", "User does not exist")
+                        try:
+                            if self.__execute_sql(f"SELECT COUNT(*) FROM users WHERE ID = {ID}")[0][0] > 0:
+                                self.__execute_sql(f"DELETE FROM users WHERE ID = {ID}")
+                                self.__execute_sql(f"DELETE FROM main WHERE ID = {ID}")
+                                if exists(cfg.PATHS.QR + f"{ID}.png"):
+                                    remove(cfg.PATHS.QR + f"{ID}.png")
+                                if exists(cfg.PATHS.USERS_AVATARS + f"{ID}.jpg"):
+                                    remove(cfg.PATHS.USERS_AVATARS + f"{ID}.jpg")
+                                self.success_handle("extra.delete", "Successfully deleted a user")
+                            else:
+                                self.error_handle("extra.delete", "IDNotFoundError", "User does not exist")
+                        except (SQLAlchemyError, OperationalError, IntegrityError) as e:
+                            self.error_handle("extra.sql", "BaseError", e.__str__())
                     elif route == 'store' or route == 's':
-                        if self.__execute_sql(f"SELECT COUNT(*) FROM stores WHERE ID = '{ID}'")[0][0] > 0:
-                            self.__execute_sql(f"""
-                                DELETE FROM firewall.stores 
-                                WHERE ID IN (
-                                    SELECT userID FROM shopkeepers WHERE storeID = '{ID}'
-                                )
-                            """)
-                            self.__execute_sql(f"DELETE FROM stores WHERE ID = '{ID}'")
-                            self.__execute_sql(f"DELETE FROM shopkeepers WHERE storeID = '{ID}'")
-                            if exists(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"):
-                                remove(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
-                            self.success_handle("extra.delete", "Successfully deleted a store")
-                        else:
-                            self.error_handle("extra.delete", "IDNotFoundError", "Store does not exist")
+                        try:
+                            if self.__execute_sql(f"SELECT COUNT(*) FROM stores WHERE ID = '{ID}'")[0][0] > 0:
+                                self.__execute_sql(f"""
+                                    DELETE FROM firewall.stores 
+                                    WHERE ID IN (
+                                        SELECT userID FROM shopkeepers WHERE storeID = '{ID}'
+                                    )
+                                """)
+                                self.__execute_sql(f"DELETE FROM stores WHERE ID = '{ID}'")
+                                self.__execute_sql(f"DELETE FROM shopkeepers WHERE storeID = '{ID}'")
+                                if exists(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg"):
+                                    remove(cfg.PATHS.STORES_AVATARS + f"{ID}.jpg")
+                                self.success_handle("extra.delete", "Successfully deleted a store")
+                            else:
+                                self.error_handle("extra.delete", "IDNotFoundError", "Store does not exist")
+                        except (SQLAlchemyError, OperationalError, IntegrityError) as e:
+                            self.error_handle("extra.sql", "BaseError", e.__str__())
                     else:
                         self.error_handle("extra.argument", "ArgumentError", f"Can't parse provided route: {route}")
                 except:
