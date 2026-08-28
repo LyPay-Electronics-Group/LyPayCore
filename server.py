@@ -18,6 +18,7 @@ from sys import stdout
 
 from middleware.logger import CustomLog
 from middleware.tokenizer import Tokenizer
+from middleware.ip_extractor import RealIPExtractor
 
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
@@ -43,3 +44,4 @@ app.add_middleware(CustomLog, app_logger=logger, blacklist=(
     "/fw/high",
     "/fps/status"
 ))
+app.add_middleware(RealIPExtractor)
