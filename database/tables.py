@@ -33,18 +33,18 @@ class AccessCodesMain(Base):
 class Lot(Base):
     __tablename__ = "auction"
 
-    lotID:     Mapped[int]  = mapped_column(SMALLINT, primary_key=True)
+    lotID:     Mapped[int]  = mapped_column("lotid", SMALLINT, primary_key=True)
     name:      Mapped[str]  = mapped_column(TEXT)
     price:     Mapped[int]  = mapped_column(INTEGER)
-    auctionID: Mapped[int]  = mapped_column(SMALLINT)
+    auctionID: Mapped[int]  = mapped_column("auctionid", SMALLINT)
     confirmed: Mapped[bool] = mapped_column(BOOLEAN,  default=False)
 
 
 class Cheque(Base):
     __tablename__ = "cheques"
 
-    chequeID: Mapped[str]            = mapped_column(TEXT,    primary_key=True)
-    storeID:  Mapped[str]            = mapped_column(TEXT)
+    chequeID: Mapped[str]            = mapped_column("chequeid", TEXT,    primary_key=True)
+    storeID:  Mapped[str]            = mapped_column("storeid", TEXT)
     unix:     Mapped[float]          = mapped_column(REAL)
     customer: Mapped[int]            = mapped_column(INTEGER)
     items:    Mapped[dict[str, int]] = mapped_column(JSON)
@@ -62,7 +62,7 @@ class CorporationEntry(Base):
 class FPS(Base):
     __tablename__ = "fps"
 
-    ID:            Mapped[str]          = mapped_column(TEXT,    primary_key=True)
+    ID:            Mapped[str]          = mapped_column("id", TEXT,    primary_key=True)
     author:        Mapped[str]          = mapped_column(TEXT)
     author_type:   Mapped[str]          = mapped_column(VARCHAR)
     description:   Mapped[str | None]   = mapped_column(TEXT)
@@ -76,8 +76,8 @@ class FPS(Base):
 class HistoryEntry(Base):
     __tablename__ = "history"
 
-    ID_out:   Mapped[str]   = mapped_column(TEXT)
-    ID_in:    Mapped[str]   = mapped_column(TEXT)
+    ID_out:   Mapped[str]   = mapped_column("id_out", TEXT)
+    ID_in:    Mapped[str]   = mapped_column("id_in", TEXT)
     value:    Mapped[int]   = mapped_column(INTEGER)
     unix:     Mapped[float] = mapped_column(REAL)
     trns_srl: Mapped[int]   = mapped_column(primary_key=True, autoincrement=True)
@@ -86,8 +86,8 @@ class HistoryEntry(Base):
 class Item(Base):
     __tablename__ = "items"
 
-    itemID:  Mapped[str]  = mapped_column(TEXT,    primary_key=True)
-    storeID: Mapped[str]  = mapped_column(TEXT)
+    itemID:  Mapped[str]  = mapped_column("itemid", TEXT, primary_key=True)
+    storeID: Mapped[str]  = mapped_column("storeID", TEXT)
     name:    Mapped[str]  = mapped_column(TEXT)
     price:   Mapped[int]  = mapped_column(INTEGER)
     active:  Mapped[bool] = mapped_column(BOOLEAN, default=True)
@@ -96,14 +96,14 @@ class Item(Base):
 class LotteryTicket(Base):
     __tablename__ = "lottery"
 
-    ID:   Mapped[str]   = mapped_column(TEXT, primary_key=True)
+    ID:   Mapped[str]   = mapped_column("id", TEXT, primary_key=True)
     unix: Mapped[float] = mapped_column(REAL)
 
 
 class Promo(Base):
     __tablename__ = "promo"
 
-    ID:     Mapped[str]  = mapped_column(TEXT,    primary_key=True)
+    ID:     Mapped[str]  = mapped_column("id", TEXT, primary_key=True)
     value:  Mapped[int]  = mapped_column(INTEGER)
     author: Mapped[str]  = mapped_column(TEXT)
     active: Mapped[bool] = mapped_column(BOOLEAN, default=True)
@@ -112,11 +112,11 @@ class Promo(Base):
 class Shopkeeper(Base):
     __tablename__ = "shopkeepers"
 
-    userID:  Mapped[int] = mapped_column(INTEGER, primary_key=True)
-    storeID: Mapped[str] = mapped_column(TEXT,    primary_key=True)
+    userID:  Mapped[int] = mapped_column("userid", INTEGER, primary_key=True)
+    storeID: Mapped[str] = mapped_column("storeid", TEXT,   primary_key=True)
 
     __table_args__ = (
-        Index("idx_storeID", "storeID"),
+        Index("idx_storeid", "storeid"),
     )
 
 
@@ -130,21 +130,21 @@ class StoreFormLink(Base):
 class Store(Base):
     __tablename__ = "stores"
 
-    ID:          Mapped[str]        = mapped_column(TEXT,     primary_key=True)
+    ID:          Mapped[str]        = mapped_column("id", TEXT, primary_key=True)
     name:        Mapped[str]        = mapped_column(TEXT)
-    hostID:      Mapped[int]        = mapped_column(INTEGER)
+    hostID:      Mapped[int]        = mapped_column("hostid", INTEGER)
     description: Mapped[str]        = mapped_column(TEXT)
     avatar:      Mapped[bool]       = mapped_column(BOOLEAN,  default=False)
     balance:     Mapped[int]        = mapped_column(INTEGER,  default=0)
     hostEmail:   Mapped[str]        = mapped_column(TEXT)
-    auctionID:   Mapped[int | None] = mapped_column(SMALLINT)
-    placeID:     Mapped[str | None] = mapped_column(TEXT)
+    auctionID:   Mapped[int | None] = mapped_column("auctionid", SMALLINT)
+    placeID:     Mapped[str | None] = mapped_column("placeid", TEXT)
 
 
 class User(Base):
     __tablename__ = "users"
 
-    ID:          Mapped[int]        = mapped_column(INTEGER, primary_key=True)
+    ID:          Mapped[int]        = mapped_column("id", INTEGER, primary_key=True)
     name:        Mapped[str]        = mapped_column(TEXT)
     login:       Mapped[str]        = mapped_column(TEXT)
     password:    Mapped[str]        = mapped_column(TEXT)
@@ -163,7 +163,7 @@ class FirewallAdminsEntry(Base):
     __tablename__ = "admins"
     __table_args__ = {"schema": "firewall"}
 
-    ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
+    ID:      Mapped[str]        = mapped_column("id", TEXT, primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
     access:  Mapped[bool]       = mapped_column(BOOLEAN)
     comment: Mapped[str | None] = mapped_column(TEXT)
@@ -173,7 +173,7 @@ class FirewallHighEntry(Base):
     __tablename__ = "high"
     __table_args__ = {"schema": "firewall"}
 
-    ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
+    ID:      Mapped[str]        = mapped_column("id", TEXT, primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
     access:  Mapped[bool]       = mapped_column(BOOLEAN)
     comment: Mapped[str | None] = mapped_column(TEXT)
@@ -183,7 +183,7 @@ class FirewallMainEntry(Base):
     __tablename__ = "main"
     __table_args__ = {"schema": "firewall"}
 
-    ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
+    ID:      Mapped[str]        = mapped_column("id", TEXT, primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
     access:  Mapped[bool]       = mapped_column(BOOLEAN)
     comment: Mapped[str | None] = mapped_column(TEXT)
@@ -193,7 +193,7 @@ class FirewallStoresEntry(Base):
     __tablename__ = "stores"
     __table_args__ = {"schema": "firewall"}
 
-    ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
+    ID:      Mapped[str]        = mapped_column("id", TEXT, primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
     access:  Mapped[bool]       = mapped_column(BOOLEAN)
     comment: Mapped[str | None] = mapped_column(TEXT)
