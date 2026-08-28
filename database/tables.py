@@ -160,7 +160,8 @@ class User(Base):
 # SCHEMA : Firewall
 
 class FirewallAdminsEntry(Base):
-    __tablename__ = "firewall.admins"
+    __tablename__ = "admins"
+    __table_args__ = {"schema": "firewall"}
 
     ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
@@ -169,7 +170,8 @@ class FirewallAdminsEntry(Base):
 
 
 class FirewallHighEntry(Base):
-    __tablename__ = "firewall.high"
+    __tablename__ = "high"
+    __table_args__ = {"schema": "firewall"}
 
     ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
@@ -178,7 +180,8 @@ class FirewallHighEntry(Base):
 
 
 class FirewallMainEntry(Base):
-    __tablename__ = "firewall.main"
+    __tablename__ = "main"
+    __table_args__ = {"schema": "firewall"}
 
     ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
@@ -187,7 +190,8 @@ class FirewallMainEntry(Base):
 
 
 class FirewallStoresEntry(Base):
-    __tablename__ = "firewall.stores"
+    __tablename__ = "stores"
+    __table_args__ = {"schema": "firewall"}
 
     ID:      Mapped[str]        = mapped_column(TEXT,    primary_key=True)
     unix:    Mapped[float]      = mapped_column(REAL)
