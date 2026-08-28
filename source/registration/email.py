@@ -138,7 +138,7 @@ async def check_corporation_record(
             if result is None:
                 raise db.exceptions.NotFound
 
-        result = result.to_dict()
+        result = result.as_dict()
         result["group"] = result.pop("category")
 
         return JSONResponse(

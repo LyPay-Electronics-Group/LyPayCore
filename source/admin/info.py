@@ -65,7 +65,7 @@ async def get_db_info(
             print('fw legacy call attempted')
 
         return JSONResponse(
-            {"result": list(map(lambda t: t.to_dict(), result))},
+            {"result": list(map(lambda t: t.as_dict(), result))},
             status_code=200
         )
     except db.exceptions.NotFound as e:

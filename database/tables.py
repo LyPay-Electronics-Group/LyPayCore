@@ -4,14 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 
 
 class Base(AsyncAttrs, DeclarativeBase):
-    def to_tuple(self) -> tuple:
+    def as_tuple(self) -> tuple:
         return tuple(getattr(self, col) for col in self.__table__.c.keys())
 
-    def to_list(self) -> list:
+    def as_list(self) -> list:
         return [getattr(self, col) for col in self.__table__.c.keys()]
 
-    def to_dict(self) -> dict:
-        return {col: getattr(self, col) for col in self.__table__.c.keys()}
+    def as_dict(self) -> dict:
+        return {col: getattr(self, col) for col in self.__mapper__.attrs.keys()}
 
 
 # SCHEMA : Public

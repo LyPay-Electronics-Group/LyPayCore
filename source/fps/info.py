@@ -24,7 +24,7 @@ async def status(
             if fps is None:
                 raise db.exceptions.NotFound
 
-        fps = fps.to_dict()
+        fps = fps.as_dict()
         if fps.pop("author_type") == 'u':
             fps["author"] = int(fps["author"])
 
