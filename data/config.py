@@ -1,6 +1,4 @@
 ﻿from os import getcwd as cwd, getenv as getenvy
-from dotenv import load_dotenv as load_dotenvy
-load_dotenvy(".envy")
 
 
 class PATHS:
@@ -68,8 +66,8 @@ class TOKENIZER:
     CONFIG_REFRESH_DELTA = 10
     CONFIG_FILE = "tokens.json"
 
-    PUBLIC_LIST = tuple(map(lambda t: t.strip(), getenvy("LYPAY_PUBLIC_TOKENS").split(',')))
-    ADMIN_LIST = tuple(map(lambda t: t.strip(), getenvy("LYPAY_ADMIN_TOKENS").split(',')))
+    PUBLIC_LIST = tuple(map(lambda t: t.strip(), getenvy("LYPAY_PUBLIC_TOKENS", "").split(',')))
+    ADMIN_LIST = tuple(map(lambda t: t.strip(), getenvy("LYPAY_ADMIN_TOKENS", "").split(',')))
 
 
 JWT_KEY = "crimsonmoonshinesuponatownthatissmearedinblood-criedthedivagivenintolament"
